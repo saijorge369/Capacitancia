@@ -413,6 +413,12 @@ body.mobile-view .formula-list{
 .exam-hidden-during-test{
   display:none!important;
 }
+body.exam-active .readouts,
+body.exam-active .table-panel,
+body.exam-active .formula-panel,
+body.exam-active .development-panel{
+  display:none!important;
+}
 @media print{
   body{background:white!important;color:#111!important}
   header,.controls,.stage,.lesson-card,.test-card .answers,.test-card #numericBox,.test-card .small-actions,.canvas-top,.canvas-wrap,.readouts,.formula-panel,.development-panel,.table-panel{display:none!important}
@@ -1034,6 +1040,29 @@ function enforceSolutionMode(){
   $("solutionToggle").disabled = exam || (state.quiz && state.quiz.started);
 }
 
+function isExamActive(){
+  return !!(state.quiz && state.quiz.started && state.quiz.examMode && !state.quiz.finished);
+}
+
+function setExamDisplayLock(locked){
+  document.body.classList.toggle("exam-active", !!locked);
+  if(locked){
+    $("tablePanel").classList.remove("show");
+    $("tableBtn").classList.remove("active");
+    $("tableBtn").textContent = "Tabla OFF";
+    $("tableBtn").disabled = true;
+    $("saveRowBtn").disabled = true;
+    $("clearRowsBtn").disabled = true;
+    $("predictBtn").disabled = true;
+    $("stateExplanation").innerHTML = "<b>Modo examen:</b> los valores calculados, medidores y tablas permanecen ocultos hasta terminar.";
+  } else {
+    $("tableBtn").disabled = false;
+    $("saveRowBtn").disabled = false;
+    $("clearRowsBtn").disabled = false;
+    $("predictBtn").disabled = false;
+  }
+}
+
 function setPanelExamLock(locked){
   if(locked){
     $("formulaPanel").classList.remove("show");
@@ -1044,9 +1073,11 @@ function setPanelExamLock(locked){
     $("developmentBtn").classList.remove("active");
     $("developmentBtn").textContent = "Desarrollo OFF";
     $("developmentBtn").disabled = true;
+    setExamDisplayLock(true);
   } else {
     $("formulaBtn").disabled = false;
     $("developmentBtn").disabled = false;
+    setExamDisplayLock(false);
   }
 }
 
@@ -1376,12 +1407,15 @@ function update(){
   $("stateExplanation").innerHTML = input.battery
     ? `<b>Estado actual:</b> conectado a batería. El voltaje es fijo.<br><b>Flujo de carga:</b> ${state.flow.text}<br>${cause}${input.scenario==="dielectricForce" ? `<br><b>Fuerza actual:</b> ${fmtSI(result.force,"N")} hacia adentro del capacitor.` : ""}`
     : `<b>Estado actual:</b> desconectado. La carga Q queda fija; por eso cambian V, E y U.<br><b>Flujo de carga:</b> ${state.flow.text}<br>${cause}${input.scenario==="dielectricForce" ? `<br><b>Fuerza actual:</b> ${fmtSI(result.force,"N")} hacia adentro del capacitor.` : ""}`;
+  if(isExamActive()){
+    $("stateExplanation").innerHTML = "<b>Modo examen:</b> los valores calculados, medidores y tablas permanecen ocultos hasta terminar.";
+  }
 
   renderFormulas(sc);
   renderDevelopment(input, result);
   renderReadouts(result);
   drawScene(input, result, sc);
-  if(input.scenario === "activity") { $("tablePanel").classList.add("show"); $("tableBtn").classList.add("active"); $("tableBtn").textContent = "Tabla ON"; }
+  if(input.scenario === "activity" && !isExamActive()) { $("tablePanel").classList.add("show"); $("tableBtn").classList.add("active"); $("tableBtn").textContent = "Tabla ON"; }
   renderRows();
   state.prevInput = JSON.parse(JSON.stringify(input));
   state.prevResult = {...result};
@@ -1628,6 +1662,11 @@ function renderDevelopment(input, result){
 }
 
 function renderReadouts(result){
+  if(isExamActive()){
+    ["cRead","qRead","vRead","eRead","uRead","pRead"].forEach(id => $(id).textContent = "—");
+    $("pLabel").textContent = "Dato oculto";
+    return;
+  }
   const sc = scenarios[$("scenarioSelect").value];
   $("cRead").textContent = fmtSI(result.C,"F");
   $("qRead").textContent = fmtSI(result.Q,"C");
@@ -1648,6 +1687,7 @@ function renderReadouts(result){
 }
 
 function saveRow(){
+  if(isExamActive()) return;
   const input = readInputs();
   const r = compute(input);
   state.rows.push({
@@ -1749,12 +1789,13 @@ function drawScene(input, result, sc){
   else if(sc.draw === "network") drawNetwork(input,result,w,h);
   else drawParallelScene(input,result,sc.draw,w,h);
 
-  if(state.showBars) drawBars(result,w,h);
+  if(state.showBars && !isExamActive()) drawBars(result,w,h);
 }
 
 
 
 function drawSceneInfoPanel(title, lines, bw=340, bh=160){
+  if(isExamActive()) return;
   if(!state.showSceneInfoBox) return;
   ensureUi(canvas.clientWidth, canvas.clientHeight);
   const s = state.ui.scale || 1, x = state.ui.sceneInfo.x, y = state.ui.sceneInfo.y;
@@ -2035,11 +2076,13 @@ function drawReferenceFigure(input,result,w,h,imgId,title,lines){
     ctx.fillStyle="#e9edf2"; roundRect(imgX,imgY,imgW,imgH,8,"#eef2f6","#ccd5df",1);
     ctx.fillStyle="#708090"; ctx.fillText("Cargando figura…", imgX+20, imgY+30);
   }
-  const bx = w - infoW - 32, by = 110, bh = Math.max(170, 36 + 30*lines.length);
-  roundRect(bx,by,infoW,bh,12,"rgba(255,255,255,.96)","#222",1.3);
-  ctx.fillStyle="#111"; ctx.font="bold 18px sans-serif"; ctx.fillText("Valores calculados", bx+14, by+24);
-  ctx.font="14px sans-serif";
-  lines.forEach((t,i)=>ctx.fillText(t,bx+14, by+54 + i*24));
+  if(!isExamActive()){
+    const bx = w - infoW - 32, by = 110, bh = Math.max(170, 36 + 30*lines.length);
+    roundRect(bx,by,infoW,bh,12,"rgba(255,255,255,.96)","#222",1.3);
+    ctx.fillStyle="#111"; ctx.font="bold 18px sans-serif"; ctx.fillText("Valores calculados", bx+14, by+24);
+    ctx.font="14px sans-serif";
+    lines.forEach((t,i)=>ctx.fillText(t,bx+14, by+54 + i*24));
+  }
 }
 
 function drawBackground(w,h){
@@ -2089,11 +2132,13 @@ function drawParallelScene(input,result,mode,w,h){
 
   if(state.showField) drawField(g,mode,input);
   if(state.showCharges) drawCharges(g,mode,input);
-  if(state.showScale) drawScale(g,input,mode);
-  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
-  if(mode === "threeMaterials") drawMaterialsControl(input,w,h);
-  else if(!["conductor"].includes(mode)) drawKappaControl(input,w,h);
-  if(state.showHandles) drawHandles(g,input,mode);
+  if(!isExamActive()){
+    if(state.showScale) drawScale(g,input,mode);
+    if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+    if(mode === "threeMaterials") drawMaterialsControl(input,w,h);
+    else if(!["conductor"].includes(mode)) drawKappaControl(input,w,h);
+    if(state.showHandles) drawHandles(g,input,mode);
+  }
 }
 
 function drawBattery(input,w,h){
@@ -2120,7 +2165,7 @@ function drawBattery(input,w,h){
   line(b.botPole.x,b.y+b.bh,b.botPole.x,b.y+b.bh+22);
   ctx.fillStyle = connected ? "#244051" : "#3d4348";
   ctx.font = "bold 14px sans-serif";
-  ctx.fillText(`${fmt(input.V)} V`, b.x+14, b.y+24);
+  ctx.fillText(isExamActive() ? "V" : `${fmt(input.V)} V`, b.x+14, b.y+24);
   ctx.font = "12px sans-serif";
   ctx.fillText("+", b.x+14, b.y+46);
   ctx.fillText("0", b.x+15, b.y+74);
@@ -2191,6 +2236,7 @@ function drawWires(input,g,w,h){
 }
 
 function drawStateBox(input,result,w,h){
+  if(isExamActive()) return;
   if(!state.showStateBox) return;
   ensureUi(w,h);
   const s = state.ui.scale, x = state.ui.stateBox.x, y = state.ui.stateBox.y, bw = 245*s, bh = 86*s;
@@ -2235,6 +2281,7 @@ function drawPlate(input,g,w,h){
 }
 
 function drawStateBox(input,result,w,h){
+  if(isExamActive()) return;
   if(!state.showStateBox) return;
   ensureUi(w,h);
   const s = state.ui.scale, x = state.ui.stateBox.x, y = state.ui.stateBox.y, bw = 245*s, bh = 86*s;
@@ -2336,14 +2383,16 @@ function drawConductor(g,input){
   ctx.strokeRect(x,cy-hh/2,w,hh);
   ctx.fillStyle = "#111";
   ctx.font = "bold 15px sans-serif";
-  ctx.fillText(`metal a = ${fmt(input.a_mm)} mm`, x+16, cy+5);
+  if(!isExamActive()) ctx.fillText(`metal a = ${fmt(input.a_mm)} mm`, x+16, cy+5);
 
   const pixPerMm = 7.5;
   const dSup = Math.max(0, (cy-hh/2) - (g.top+14));
   const dInf = Math.max(0, g.bot - (cy+hh/2));
   ctx.font = "bold 14px sans-serif";
-  ctx.fillText(`d_sup = ${fmt(dSup/pixPerMm,1)} mm`, g.left+18, g.top+38);
-  ctx.fillText(`d_inf = ${fmt(dInf/pixPerMm,1)} mm`, g.left+18, g.bot-18);
+  if(!isExamActive()){
+    ctx.fillText(`d_sup = ${fmt(dSup/pixPerMm,1)} mm`, g.left+18, g.top+38);
+    ctx.fillText(`d_inf = ${fmt(dInf/pixPerMm,1)} mm`, g.left+18, g.bot-18);
+  }
 
   // drag directo sobre el metal
   state.hotspots.conductor = {x:x, y:cy-hh/2, w:w, h:hh, maxOffset:maxOffset};
@@ -2404,6 +2453,7 @@ function drawCharges(g,mode,input){
 }
 
 function drawScale(g,input,mode){
+  if(isExamActive()) return;
   ctx.strokeStyle = css("--axis");
   ctx.fillStyle = css("--ink");
   ctx.lineWidth = 2;
@@ -2416,6 +2466,7 @@ function drawScale(g,input,mode){
 }
 
 function drawVoltageIndicator(input,result,w,h){
+  if(isExamActive()) return;
   if(!state.showVoltage) return;
   ensureUi(w,h);
   const s = state.ui.scale, x = state.ui.volt.x, y = state.ui.volt.y, bw = 190*s, bh = 72*s;
@@ -2429,6 +2480,7 @@ function drawVoltageIndicator(input,result,w,h){
 }
 
 function drawKappaControl(input,w,h){
+  if(isExamActive()) return;
   if(!state.showKappaBox) return;
   ensureUi(w,h);
   const s = state.ui.scale, x = state.ui.kappaBox.x, y = state.ui.kappaBox.y, bw = 220*s, bh = 90*s;
@@ -2478,6 +2530,7 @@ function drawHandles(g,input,mode){
 }
 
 function drawMaterialsControl(input,w,h){
+  if(isExamActive()) return;
   if(!state.showMaterialsBox) return;
   ensureUi(w,h);
   const s = state.ui.scale, x = state.ui.materialsBox.x, y = state.ui.materialsBox.y, bw = 215*s, bh = 124*s;
@@ -2555,11 +2608,11 @@ function drawAngled(input,result,g,w,h){
 
   if(state.showField) drawField(g,"angled",input);
   if(state.showCharges) drawCharges(g,"angled",input);
-  if(state.showScale) drawScale(g,input,"angled");
-  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+  if(!isExamActive() && state.showScale) drawScale(g,input,"angled");
+  if(!isExamActive() && state.showVoltage) drawVoltageIndicator(input,result,w,h);
   ctx.fillStyle = css("--ink");
   ctx.font = "bold 16px sans-serif";
-  ctx.fillText(`θ = ${fmt(input.theta)}° (arrastra)`, g.right+42,g.top-12);
+  if(!isExamActive()) ctx.fillText(`θ = ${fmt(input.theta)}° (arrastra)`, g.right+42,g.top-12);
   state.hotspots.theta = {x:g.right-30,y:g.top-rise-10,w:40,h:30};
 }
 
@@ -2586,12 +2639,14 @@ function drawCylinder(input,result,w,h){
 
   ctx.fillStyle="#111";
   ctx.font="bold 16px sans-serif";
-  ctx.fillText(`R₁ = ${fmt(input.R1*100)} cm`,cx-105,cy-140);
-  ctx.fillText(`R₂ = ${fmt(input.R2*100)} cm`,cx+40,cy-140);
-  ctx.fillText(`L = ${fmt(input.L*100)} cm`,cx-32,cy+162);
-  ctx.fillText(`κ = ${fmt(input.k)}`,cx+50,cy+70);
-  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
-  drawKappaControl(input,w,h);
+  if(!isExamActive()){
+    ctx.fillText(`R₁ = ${fmt(input.R1*100)} cm`,cx-105,cy-140);
+    ctx.fillText(`R₂ = ${fmt(input.R2*100)} cm`,cx+40,cy-140);
+    ctx.fillText(`L = ${fmt(input.L*100)} cm`,cx-32,cy+162);
+    ctx.fillText(`κ = ${fmt(input.k)}`,cx+50,cy+70);
+    if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+    drawKappaControl(input,w,h);
+  }
 }
 
 function drawNetwork(input,result,w,h){
@@ -2653,9 +2708,15 @@ function drawNetwork(input,result,w,h){
 
   ctx.fillStyle = "#111";
   ctx.font = "bold 15px sans-serif";
-  ctx.fillText(`Rama superior: C₁ y C₂ en SERIE → C₁₂ = ${fmtSI(result.C12,"F")}`, left+10, top+55);
-  ctx.fillText(`Rama inferior: C₃ = ${fmtSI(result.C3,"F")}`, left+10, bottom+42);
-  ctx.fillText(`Las dos ramas están en PARALELO → Ceq = C₁₂ + C₃ = ${fmtSI(result.C,"F")}`, left+10, bottom+70);
+  if(isExamActive()){
+    ctx.fillText("Rama superior: C₁ y C₂ en SERIE", left+10, top+55);
+    ctx.fillText("Rama inferior: C₃", left+10, bottom+42);
+    ctx.fillText("Las dos ramas están en PARALELO", left+10, bottom+70);
+  } else {
+    ctx.fillText(`Rama superior: C₁ y C₂ en SERIE → C₁₂ = ${fmtSI(result.C12,"F")}`, left+10, top+55);
+    ctx.fillText(`Rama inferior: C₃ = ${fmtSI(result.C3,"F")}`, left+10, bottom+42);
+    ctx.fillText(`Las dos ramas están en PARALELO → Ceq = C₁₂ + C₃ = ${fmtSI(result.C,"F")}`, left+10, bottom+70);
+  }
 
   if(input.battery && state.flow && state.flow.dir !== "none"){
     ctx.strokeStyle = state.flow.dir === "batteryToCap" ? "#d35400" : "#8e44ad";
@@ -2825,7 +2886,7 @@ function drawCircuit2555(input,result,w,h){
     ctx.font = 'bold 17px sans-serif';
     ctx.fillText(label, cx-11, y-32);
     ctx.font = '12px sans-serif';
-    if(voltage) ctx.fillText(voltage, cx+24, y+24);
+    if(voltage && !isExamActive()) ctx.fillText(voltage, cx+24, y+24);
     ctx.restore();
     return gap;
   }
@@ -2840,8 +2901,8 @@ function drawCircuit2555(input,result,w,h){
     ctx.font = 'bold 17px sans-serif';
     ctx.fillText(label, alignRight ? x-48 : x+14, cy-22);
     ctx.font = '12px sans-serif';
-    if(charge) ctx.fillText(charge, alignRight ? x-72 : x+chargeDx, cy+4);
-    if(voltage) ctx.fillText(voltage, alignRight ? x-78 : x-30, cy+42);
+    if(charge && !isExamActive()) ctx.fillText(charge, alignRight ? x-72 : x+chargeDx, cy+4);
+    if(voltage && !isExamActive()) ctx.fillText(voltage, alignRight ? x-78 : x-30, cy+42);
     ctx.restore();
   }
 
@@ -2862,7 +2923,7 @@ function drawCircuit2555(input,result,w,h){
   lineSeg(xBat-18, yMinus, xBat+18, yMinus, input.battery ? '#3a3f46' : '#888', 5);
   ctx.fillStyle = '#111';
   ctx.font = 'bold 16px sans-serif';
-  ctx.fillText(`${fmt(input.V)} V`, xBat-74, yPlus-54);
+  ctx.fillText(isExamActive() ? "V" : `${fmt(input.V)} V`, xBat-74, yPlus-54);
   ctx.fillText('+', xBat-54, yPlus+8);
   ctx.fillText('−', xBat-54, yMinus+6);
 
@@ -2910,8 +2971,8 @@ function drawCircuit2555(input,result,w,h){
   // etiquetas de bloques fuera de la figura
   ctx.fillStyle = '#0b7285';
   ctx.font = 'bold 15px sans-serif';
-  ctx.fillText(`Bloque superior: C₂₃₄ = ${uF(result.C234)} μF`, leftBus+18, top+22);
-  ctx.fillText(`Bloque inferior: C₅₆ = ${uF(result.C56)} μF`, leftBus+18, bottom-14);
+  ctx.fillText(isExamActive() ? "Bloque superior: C₂ ∥ C₃ ∥ C₄" : `Bloque superior: C₂₃₄ = ${uF(result.C234)} μF`, leftBus+18, top+22);
+  ctx.fillText(isExamActive() ? "Bloque inferior: C₅ ∥ C₆" : `Bloque inferior: C₅₆ = ${uF(result.C56)} μF`, leftBus+18, bottom-14);
 
   // C2 C3 C4 en paralelo
   [
@@ -2941,13 +3002,15 @@ function drawCircuit2555(input,result,w,h){
   // resumen inferior
   ctx.fillStyle = '#006d77';
   ctx.font = 'bold 16px sans-serif';
-  ctx.fillText(`Ceq = ${uF(result.C)} μF`, leftBus, bottom+38);
-  ctx.fillText(`Qtotal = ${uC(result.Qs)} μC`, Math.min(leftBus+220, right-132), bottom+38);
+  if(!isExamActive()){
+    ctx.fillText(`Ceq = ${uF(result.C)} μF`, leftBus, bottom+38);
+    ctx.fillText(`Qtotal = ${uC(result.Qs)} μC`, Math.min(leftBus+220, right-132), bottom+38);
+  }
 
   if(input.battery && state.flow && state.flow.dir !== 'none') drawFlowArrow(xSwitchL+4, bottom+28, xSwitchL+58, state.flow.dir, true);
   ctx.restore();
 
-  if(w >= 760){
+  if(w >= 760 && !isExamActive()){
     const infoW = Math.min(360, Math.max(280, w - 36));
     drawSceneInfoPanel('Resultados del circuito', [
       `C₂₃₄=${uF(result.C234)} μF   C₅₆=${uF(result.C56)} μF`,
@@ -3015,7 +3078,7 @@ function drawBatterySymbol(x,y,input){
   ctx.fillText("+", x+14, y-42);
   ctx.fillText("−", x+35, y+42);
   ctx.font = "bold 14px sans-serif";
-  ctx.fillText(`${fmt(input.V)} V`, x-6, y-52);
+  ctx.fillText(isExamActive() ? "V" : `${fmt(input.V)} V`, x-6, y-52);
 
   ctx.restore();
 }
@@ -3274,13 +3337,13 @@ function startQuiz(){
 
   const level = $("levelSelect").value;
   const examMode = $("examModeCheck").checked;
-  const items = generateQuiz(level);
+  const attempt = nextAttempt(level,email);
+  const items = generateQuiz(level, attempt, email);
   if(!items || items.length < QUIZ_COUNT){
     $("feedback").textContent = "⚠️ Error: no se pudo construir el banco de preguntas. Reinicia o revisa el archivo.";
     return;
   }
 
-  const attempt = nextAttempt(level,email);
   const key = makeExamKey(level,attempt);
 
   // Modo examen real: solución apagada y bloqueada.
@@ -3392,21 +3455,100 @@ function conceptQuestions(){
   ];
 }
 
-function generateQuiz(level){
-  let bank;
-  const extras = makeLevelExtraQuestions(level);
-  if(level === "basico") bank = [...conceptQuestions().slice(0,20)];
-  else if(level === "medio") bank = [...makeNumericalQuestions().slice(0,12), ...conceptQuestions().slice(0,8)];
-  else bank = [...makeAdvancedNumericalQuestions().slice(0,16), ...conceptQuestions().slice(0,4)];
-  while(bank.length < 24){
-    bank.push(...(level==="avanzado" ? makeAdvancedNumericalQuestions() : makeNumericalQuestions()).slice(0,24-bank.length));
+function questionSignature(item){
+  return `${item.scenario || "general"}|${item.fig || ""}|${item.type}|${item.prompt}`
+    .toLowerCase()
+    .replace(/\d+(?:[.,]\d+)?/g,"#")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function previousAttemptKey(level,email){
+  const safe = (email || "anon").toLowerCase().replace(/[^a-z0-9]/g,"_");
+  return `capacitancia_last_questions_${safe}_${level}`;
+}
+
+function loadPreviousSignatures(level,email){
+  try { return JSON.parse(localStorage.getItem(previousAttemptKey(level,email)) || "[]"); }
+  catch(e){ return []; }
+}
+
+function saveQuestionSignatures(level,email,items){
+  localStorage.setItem(previousAttemptKey(level,email), JSON.stringify(items.map(questionSignature)));
+}
+
+function addByScenarioCoverage(selected, candidates, limit, previousSet){
+  const usedScenarios = new Set(selected.map(q => q.scenario || q.fig || q.prompt));
+  const shuffled = shuffle(candidates);
+  for(const item of shuffled){
+    if(selected.length >= limit) break;
+    const key = item.scenario || item.fig || item.prompt;
+    if(usedScenarios.has(key)) continue;
+    if(previousSet && previousSet.has(questionSignature(item))) continue;
+    selected.push(item);
+    usedScenarios.add(key);
   }
-  return shuffle([...shuffle(bank).slice(0, QUIZ_COUNT - extras.length), ...extras]).slice(0, QUIZ_COUNT);
+  for(const item of shuffled){
+    if(selected.length >= limit) break;
+    if(selected.includes(item)) continue;
+    if(previousSet && previousSet.has(questionSignature(item))) continue;
+    selected.push(item);
+  }
+  for(const item of shuffled){
+    if(selected.length >= limit) break;
+    if(!selected.includes(item)) selected.push(item);
+  }
+}
+
+function generateQuiz(level, attempt=1, email=""){
+  const previousSet = new Set(loadPreviousSignatures(level,email));
+  const extras = makeLevelExtraQuestions(level);
+  let bank;
+  if(level === "basico") bank = [...conceptQuestions().slice(0,20), ...makeNumericalQuestions().slice(0,8)];
+  else if(level === "medio") bank = [...makeNumericalQuestions(), ...conceptQuestions().slice(0,16)];
+  else bank = [...makeAdvancedNumericalQuestions(), ...makeNumericalQuestions().slice(0,8), ...conceptQuestions().slice(0,10)];
+  while(bank.length < 36){
+    bank.push(...(level==="avanzado" ? makeAdvancedNumericalQuestions() : makeNumericalQuestions()));
+  }
+  const selected = [];
+  addByScenarioCoverage(selected, shuffle(extras), QUIZ_COUNT, attempt > 1 ? previousSet : null);
+  addByScenarioCoverage(selected, bank, QUIZ_COUNT, attempt > 1 ? previousSet : null);
+  if(attempt > 1){
+    const overlap = selected.filter(item => previousSet.has(questionSignature(item))).length;
+    if(overlap > Math.floor(QUIZ_COUNT/2)){
+      selected.length = 0;
+      addByScenarioCoverage(selected, [...extras, ...bank], QUIZ_COUNT, previousSet);
+    }
+  }
+  const result = shuffle(selected).slice(0, QUIZ_COUNT);
+  saveQuestionSignatures(level,email,result);
+  return result;
 }
 
 function makeLevelExtraQuestions(level){
   const r = (a,b,d=1) => Number((a+Math.random()*(b-a)).toFixed(d));
   const ri = (a,b) => Math.floor(a + Math.random()*(b-a+1));
+  const comparisonQuestion = (() => {
+    if(level === "basico"){
+      return {type:"mcq", scenario:"comparisonCeq", fig:"Comparación conceptual de Ceq",
+        prompt:"Cuatro capacitores iguales C se conectan de cuatro formas. ¿Cuál tiene mayor capacitancia equivalente?",
+        options:["Los 4 en paralelo","Los 4 en serie","2 en serie y 2 en paralelo como dos ramas","3 en paralelo y luego ese bloque en serie con 1"],
+        answer:0,
+        solution:"En paralelo las capacitancias se suman: Ceq=4C, que es mayor que las otras combinaciones."};
+    }
+    if(level === "medio"){
+      return {type:"mcq", scenario:"comparisonCeq", fig:"Comparación conceptual de Ceq",
+        prompt:"Con cuatro capacitores iguales C, compara: A) 3 en paralelo y ese bloque en serie con 1; B) 3 en serie y ese bloque en paralelo con 1; C) 2 ramas en paralelo, cada rama con 2 en serie; D) 4 en serie. ¿Cuál tiene mayor Ceq?",
+        options:["A: (3C) en serie con C","B: (C/3) en paralelo con C","C: dos ramas C/2 en paralelo","D: cuatro en serie"],
+        answer:1,
+        solution:"A=3C/4, B=4C/3, C=C y D=C/4. La mayor es B."};
+    }
+    return {type:"mcq", scenario:"comparisonCeq", fig:"Comparación conceptual de Ceq",
+      prompt:"Tres diseños usan capacitores base C: A) dos C en paralelo; B) dos C en serie; C) un capacitor con dieléctrico κ=3 en paralelo con otro sin dieléctrico. ¿Cuál tiene mayor Ceq y por qué?",
+      options:["C, porque equivale a 3C+C=4C","A, porque paralelo siempre gana y da 2C","B, porque la serie acumula voltaje y da 2C","A y C son iguales porque ambos están en paralelo"],
+      answer:0,
+      solution:"El dieléctrico triplica uno de los capacitores: Ceq=3C+C=4C, mayor que A=2C y B=C/2."};
+  })();
   if(level === "basico"){
     const A = r(180,420,0), d = r(3,9,1), k = 1;
     const C = EPS0*(A*1e-6)/(d*1e-3)*k;
@@ -3419,7 +3561,8 @@ function makeLevelExtraQuestions(level){
         prompt:"Si κ=1 en un capacitor de placas paralelas, el material se comporta como:",
         options:["Aire/vacío ideal para la fórmula","Conductor perfecto","Dieléctrico que duplica C","Cortocircuito"],
         answer:0,
-        solution:"κ=1 deja C igual a C₀=ε₀A/d."}
+        solution:"κ=1 deja C igual a C₀=ε₀A/d."},
+      comparisonQuestion
     ];
   }
   if(level === "medio"){
@@ -3436,7 +3579,8 @@ function makeLevelExtraQuestions(level){
       {type:"num", scenario:"dielectricThickness", fig:"Dieléctrico parcial en espesor", unit:"pF", tol:.05,
         prompt:`Medio: A=${A2} mm², d=${d2} mm, κ=${k2} y f=${f} en espesor. Calcula C en pF. Usa ${EPS0_TXT}.`,
         value:Cthick/1e-12,
-        solution:`C=C₀/[(1-f)+f/κ]=${fmtSI(Cthick,"F")}.`}
+        solution:`C=C₀/[(1-f)+f/κ]=${fmtSI(Cthick,"F")}.`},
+      comparisonQuestion
     ];
   }
   const V = r(8,18,1);
@@ -3457,7 +3601,8 @@ function makeLevelExtraQuestions(level){
     {type:"num", scenario:"sphere", fig:"Energía en condensador esférico", unit:"pJ", tol:.05,
       prompt:`Avanzado: condensador esférico con R₁=${R1} cm, R₂=${R2} cm y V=${Vs} V. Calcula U en pJ. Usa ${EPS0_TXT}.`,
       value:Usphere/1e-12,
-      solution:`Con ${EPS0_TXT}, C=4πε₀R₁R₂/(R₂−R₁); U=½CV²=${fmtSI(Usphere,"J")}.`}
+      solution:`Con ${EPS0_TXT}, C=4πε₀R₁R₂/(R₂−R₁); U=½CV²=${fmtSI(Usphere,"J")}.`},
+    comparisonQuestion
   ];
 }
 
