@@ -1,0 +1,3716 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de Capacitancia — Profesor Wong</title>
+<style>
+:root{
+  color-scheme:light;
+  --ink:#172026;
+  --muted:#5f6f79;
+  --line:#ccd7dc;
+  --panel:#f8fbfc;
+  --soft:#eaf2f4;
+  --brand:#006d77;
+  --brand-2:#7a4f01;
+  --on-brand:#ffffff;
+  --paper:#ffffff;
+  --canvas:#ffffff;
+  --grid:#e6eef1;
+  --axis:#8ba4ae;
+  --pos:#d73737;
+  --neg:#2468c9;
+  --field:#245f73;
+  --dielectric:rgba(93,188,117,.45);
+  --dielectric-line:#257545;
+  --conductor:rgba(170,178,185,.75);
+  --active:#dff3f0;
+  --hover:#fafdff;
+  --good:#1b7f45;
+  --bad:#ad2f2f;
+  --warn:#b76e00;
+}
+body.theme-dark{
+  color-scheme:dark;
+  --ink:#edf6f9;
+  --muted:#aec2cb;
+  --line:#33515c;
+  --panel:#13252c;
+  --soft:#1f3942;
+  --brand:#4cc9c0;
+  --brand-2:#ffd166;
+  --on-brand:#061317;
+  --paper:#0c171c;
+  --canvas:#071115;
+  --grid:#1c333b;
+  --axis:#668893;
+  --pos:#ff5a5f;
+  --neg:#62a8ff;
+  --field:#a8e9f1;
+  --dielectric:rgba(77,168,143,.42);
+  --dielectric-line:#76d7a1;
+  --conductor:rgba(130,145,154,.70);
+  --active:#173f45;
+  --hover:#1d343d;
+}
+body.theme-wong{
+  --ink:#172026;
+  --muted:#556c75;
+  --line:#b9d0d6;
+  --panel:#eef8fa;
+  --soft:#e9f5f2;
+  --brand:#006d77;
+  --brand-2:#b76e00;
+  --paper:#ffffff;
+  --canvas:#fdfefe;
+  --grid:#dbeaec;
+  --axis:#668893;
+}
+
+body.theme-green{
+  --ink:#edf7e8;--muted:#c9dfc1;--line:#5d7f52;--panel:#19351f;--soft:#244a2b;--brand:#d6f56f;--brand-2:#f7d774;--on-brand:#102018;--paper:#102218;--canvas:#15351d;--grid:#315b38;--axis:#c5e1b6;--pos:#ffcf5a;--neg:#83c5ff;--field:#e7f7ce;--dielectric:rgba(174,236,135,.30);--dielectric-line:#bdf37e;--conductor:rgba(220,230,213,.55);--active:#2f5a35;--hover:#25492d;background:#0e1b13;
+}
+body.theme-davinci{
+  --ink:#2a2115;--muted:#6e604c;--line:#cdbb94;--panel:#f4ead2;--soft:#ead9b8;--brand:#7b3f00;--brand-2:#9b6a20;--on-brand:#fff7e7;--paper:#fff8e8;--canvas:#fbf0d2;--grid:#e2cf9f;--axis:#8a7557;--pos:#a83220;--neg:#1f5f8a;--field:#5f4b32;--dielectric:rgba(111,154,92,.34);--dielectric-line:#476c38;--conductor:rgba(166,145,115,.60);--active:#ead7a8;--hover:#fff2d5;background:#eadfc8;
+}
+body.theme-mit{
+  --ink:#111820;--muted:#52616c;--line:#c7d0d8;--panel:#f7f9fb;--soft:#e7edf2;--brand:#a31f34;--brand-2:#8a8b8c;--on-brand:#ffffff;--paper:#ffffff;--canvas:#fbfdff;--grid:#e0e7ed;--axis:#71808d;--pos:#a31f34;--neg:#0067b1;--field:#253746;--dielectric:rgba(0,150,136,.25);--dielectric-line:#00796b;--conductor:rgba(140,150,160,.65);--active:#f2dde1;--hover:#f9f9fa;background:#eef1f4;
+}
+body.theme-minimal{
+  --ink:#111111;--muted:#666666;--line:#dddddd;--panel:#fafafa;--soft:#f1f1f1;--brand:#222222;--brand-2:#555555;--on-brand:#ffffff;--paper:#ffffff;--canvas:#ffffff;--grid:#eeeeee;--axis:#999999;--pos:#111111;--neg:#555555;--field:#333333;--dielectric:rgba(0,0,0,.08);--dielectric-line:#444444;--conductor:rgba(160,160,160,.45);--active:#eeeeee;--hover:#f7f7f7;background:#ffffff;
+}
+body.theme-fullcolor{
+  --ink:#102030;--muted:#526b7b;--line:#b7d5e8;--panel:#eef9ff;--soft:#e6f7ff;--brand:#008c95;--brand-2:#ff8a00;--on-brand:#ffffff;--paper:#ffffff;--canvas:#f8fdff;--grid:#d6eef8;--axis:#557c8c;--pos:#e63946;--neg:#2563eb;--field:#0e7490;--dielectric:rgba(34,197,94,.34);--dielectric-line:#16a34a;--conductor:rgba(148,163,184,.60);--active:#d6f7f6;--hover:#f1fbff;background:#e9f7ff;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:#f3f7f8;
+}
+body.theme-dark{background:#081116}
+button,input,select{font:inherit}
+button{
+  border:1px solid var(--line);
+  background:var(--paper);
+  color:var(--ink);
+  border-radius:7px;
+  padding:.55rem .75rem;
+  cursor:pointer;
+  min-height:38px;
+}
+button:hover{background:var(--hover)}
+button.primary{background:var(--brand);border-color:var(--brand);color:var(--on-brand);font-weight:800}
+button.toggle.active{background:var(--active);border-color:var(--brand);color:var(--brand);font-weight:800}
+input,select{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:.55rem .65rem;
+  background:var(--paper);
+  color:var(--ink);
+  min-height:38px;
+}
+input[type=range]{padding:0;border:0;min-height:28px;accent-color:var(--brand)}
+.app{min-height:100vh;display:grid;grid-template-rows:auto 1fr}
+header{
+  background:var(--paper);
+  border-bottom:1px solid var(--line);
+  padding:.85rem clamp(1rem,2vw,1.6rem);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+h1{font-size:clamp(1.15rem,2.5vw,1.65rem);margin:0}
+.hint{color:var(--muted);font-size:.9rem;line-height:1.38}
+.author-line{margin-top:.28rem;color:var(--muted);font-size:.88rem;font-weight:700}
+.author-line strong{color:var(--brand-2)}
+.header-actions,.small-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.pill{
+  border:1px solid var(--line);
+  background:var(--soft);
+  border-radius:999px;
+  padding:.35rem .7rem;
+  font-size:.9rem;
+  white-space:nowrap;
+}
+main{
+  display:grid;
+  grid-template-columns:minmax(300px,360px) 1fr minmax(310px,390px);
+  gap:1rem;
+  padding:1rem;
+  max-width:1660px;
+  width:100%;
+  margin:0 auto;
+}
+body.presentation main{grid-template-columns:minmax(280px,350px) 1fr}
+body.presentation .test-panel{display:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:0}
+.controls,.test-panel{
+  padding:1rem;
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+  max-height:calc(100vh - 88px);
+  overflow:auto;
+}
+.stage{
+  background:var(--paper);
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto minmax(560px,1fr) auto auto auto;
+  min-height:calc(100vh - 88px);
+}
+.canvas-top{
+  border-bottom:1px solid var(--line);
+  padding:.75rem;
+  display:grid;
+  gap:.75rem;
+}
+.canvas-title strong{display:block;font-size:1rem}
+.canvas-title span{color:var(--muted);font-size:.9rem}
+.canvas-wrap{
+  position:relative;
+  min-height:560px;
+  background:var(--canvas);
+}
+canvas{
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:560px;
+  touch-action:none;
+}
+.readouts{
+  border-top:1px solid var(--line);
+  padding:.75rem;
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:.5rem;
+  background:var(--paper);
+}
+.readout{
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:.6rem;
+  background:var(--panel);
+  min-height:70px;
+}
+.readout span{display:block;color:var(--muted);font-size:.78rem}
+.readout strong{display:block;margin-top:.2rem;font-size:clamp(.9rem,1.35vw,1.05rem)}
+.formula-panel,.development-panel,.table-panel{
+  display:none;
+  border-top:1px solid var(--line);
+  padding:.75rem;
+  background:var(--paper);
+  color:var(--ink);
+}
+.formula-panel.show,.development-panel.show,.table-panel.show{display:grid;gap:.55rem}
+.formula-title{font-weight:900;color:var(--brand-2)}
+.formula-list{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:.5rem;
+}
+.formula-chip{
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:var(--panel);
+  padding:.6rem;
+  min-height:70px;
+  line-height:1.35;
+}
+.formula-chip strong{display:block;color:var(--brand);margin-bottom:.2rem}
+.formula-chip code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:800;white-space:normal}
+.development-panel ol{margin:.25rem 0 0 1.1rem;padding:0;display:grid;gap:.35rem;line-height:1.45}
+.development-panel li b{color:var(--brand)}
+.group{display:flex;flex-direction:column;gap:.55rem}
+.group-title{font-weight:850;font-size:.93rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
+.slider-row{display:grid;grid-template-columns:1fr 64px;gap:.55rem;align-items:center}
+.check-row{display:grid;grid-template-columns:auto 1fr;gap:.5rem;align-items:center;color:var(--ink);font-weight:800}
+.check-row input{width:auto;min-height:0}
+.lesson-card,.test-card{
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:.85rem;
+  background:var(--paper);
+  display:grid;
+  gap:.7rem;
+}
+.lesson-card p{margin:0;color:var(--muted);line-height:1.42;font-size:.92rem}
+.solution-key{
+  display:none;
+  border:1px solid var(--brand-2);
+  border-radius:7px;
+  background:#fff8e6;
+  padding:.6rem;
+  font-size:.9rem;
+  color:#4e3b06;
+}
+body.theme-dark .solution-key{background:#3d3219;color:#fff0bd}
+.solution-key.show{display:block}
+.answers{display:grid;gap:.45rem}
+.answers label{
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:.6rem;
+  background:var(--paper);
+  color:var(--ink);
+  cursor:pointer;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:.55rem;
+  align-items:start;
+}
+.answers input{width:auto;min-height:0;margin-top:.2rem}
+.feedback{min-height:24px;color:var(--muted);font-size:.92rem}
+.result{border:1px solid var(--line);border-radius:8px;padding:.85rem;background:var(--paper);color:var(--ink);display:none;line-height:1.4}
+.result.show{display:block}
+.quiz-figure{border:1px dashed var(--line);border-radius:7px;padding:.45rem .55rem;background:var(--soft);color:var(--brand);font-weight:800;margin-bottom:.35rem}
+@media print{header,.controls,.canvas-top,.canvas-wrap,.formula-panel,.development-panel,.table-panel,.small-actions:not(.print-keep){display:none!important}main{display:block;max-width:none}.test-panel{display:block;max-height:none;border:0}.result,.result.show{display:block!important}}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{border:1px solid var(--line);padding:.42rem;text-align:left}
+th{background:var(--soft)}
+@media(max-width:1180px){
+  main{grid-template-columns:320px 1fr}
+  .test-panel{grid-column:1/-1;max-height:none}
+  .readouts{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:780px){
+  header{align-items:flex-start;flex-direction:column}
+  main{grid-template-columns:1fr;padding:.65rem}
+  .controls,.test-panel,.stage{max-height:none}
+  .readouts{grid-template-columns:1fr 1fr}
+  .formula-list{grid-template-columns:1fr}
+  .canvas-wrap,canvas{min-height:620px}
+}
+
+body.mobile-view main{
+  grid-template-columns:1fr;
+  max-width:980px;
+}
+body.mobile-view .controls,
+body.mobile-view .test-panel{
+  max-height:none;
+}
+body.mobile-view .stage{
+  min-height:auto;
+}
+body.mobile-view .canvas-wrap,
+body.mobile-view canvas{
+  min-height:430px;
+}
+body.mobile-view .readouts{
+  grid-template-columns:repeat(2,1fr);
+}
+body.mobile-view .formula-list{
+  grid-template-columns:1fr;
+}
+.exam-report-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:.7rem;
+  font-size:.82rem;
+}
+.exam-report-table th,.exam-report-table td{
+  border:1px solid var(--line);
+  padding:.35rem;
+  vertical-align:top;
+}
+.exam-hidden-during-test{
+  display:none!important;
+}
+@media print{
+  body{background:white!important;color:#111!important}
+  header,.controls,.stage,.lesson-card,.test-card .answers,.test-card #numericBox,.test-card .small-actions,.canvas-top,.canvas-wrap,.readouts,.formula-panel,.development-panel,.table-panel{display:none!important}
+  main{display:block!important;max-width:none!important;padding:0!important}
+  .test-panel{display:block!important;border:0!important;max-height:none!important}
+  .result,.result.show{display:block!important;border:0!important}
+  .group{display:none!important}
+  .test-card{border:0!important}
+}
+
+</style>
+</head>
+<body class="theme-wong">
+<div class="app">
+<header>
+  <div>
+    <h1>Simulador de capacitancia, dieléctricos y energía</h1>
+    <div class="hint">Diseño Profesor Wong: manipula batería, placas, dieléctrico, permisividad, distancia y área. Observa C, Q, V, E y U.</div>
+    <div class="author-line">Autor: <strong>Prof. Wong OM SAI RAM</strong> · ESPOL · Capítulo Capacitancia · Copyright 2026</div>
+  </div>
+  <div class="header-actions">
+    <span class="pill" id="statePill">Batería conectada · V fijo</span>
+    <span class="pill" id="timePill">Avanzado: 25–30 min</span>
+    <button class="toggle" id="presentationBtn">Presentación OFF</button>
+    <button class="toggle" id="mobileBtn">Celular OFF</button>
+    <button class="primary" id="startTestTop">Iniciar autotest</button>
+  </div>
+</header>
+
+<main>
+  <aside class="panel controls">
+    <section class="group">
+      <div class="group-title">Escenarios</div>
+      <select id="scenarioSelect"></select>
+      <div class="hint" id="scenarioHint"></div>
+    </section>
+
+    <section class="group">
+      <div class="group-title">Visualizaciones</div>
+      <label>Estilo visual
+        <select id="themeSelect">
+          <option value="theme-wong">Diseño Profesor Wong</option>
+          <option value="theme-green">Pizarra verde</option>
+          <option value="theme-davinci">Da Vinci</option>
+          <option value="theme-mit">MIT</option>
+          <option value="theme-minimal">Minimalista</option>
+          <option value="theme-fullcolor">Full Color</option>
+          <option value="">Claro clásico</option>
+          <option value="theme-dark">Modo oscuro</option>
+        </select>
+      </label>
+      <div class="grid-2">
+        <button class="toggle active" id="chargesBtn">Cargas ON</button>
+        <button class="toggle active" id="fieldBtn">Campo ON</button>
+        <button class="toggle active" id="barsBtn">Medidores ON</button>
+        <button class="toggle active" id="voltageBtn">Voltaje ON</button>
+        <button class="toggle active" id="scaleBtn">Escala ON</button>
+        <button class="toggle active" id="handlesBtn">Manijas ON</button>
+        <button class="toggle active" id="dielectricBtn">Dieléctrico ON</button>
+        <button class="toggle active" id="formulaBtn">Fórmula ON</button>
+        <button class="toggle" id="developmentBtn">Desarrollo OFF</button>
+        <button class="toggle" id="tableBtn">Tabla OFF</button>
+      </div>
+    </section>
+
+    <section class="group">
+      <div class="group-title">Batería / capacitor aislado</div>
+      <label class="check-row">
+        <input id="batteryCheck" type="checkbox" checked>
+        Capacitor conectado a batería
+      </label>
+      <div class="grid-2">
+        <button id="chargeDisconnectBtn">Cargar y desconectar</button>
+        <button id="resetChargeBtn">Reset Q₀</button>
+      </div>
+      <div class="hint">
+        Conectado: <b>V fijo</b>. Desconectado: <b>Q fijo</b>. La batería cambia de color y los cables se cortan visualmente.
+      </div>
+    </section>
+
+    <section class="group">
+      <div class="group-title">Sliders exactos</div>
+      <label>Voltaje V
+        <div class="slider-row"><input id="VSlider" type="range" min="0.5" max="12" step="0.1" value="3"><input id="VInput" type="number" min="0.5" max="12" step="0.1" value="3"></div>
+      </label>
+      <label id="areaControl">Área A (mm²)
+        <div class="slider-row"><input id="ASlider" type="range" min="80" max="900" step="10" value="320"><input id="AInput" type="number" min="80" max="900" step="10" value="320"></div>
+      </label>
+      <label id="distanceControl">Separación d (mm)
+        <div class="slider-row"><input id="dSlider" type="range" min="1" max="20" step="0.1" value="6"><input id="dInput" type="number" min="1" max="20" step="0.1" value="6"></div>
+      </label>
+      <label id="dielectricFractionControl">Inserción dieléctrico f
+        <div class="slider-row"><input id="fSlider" type="range" min="0" max="1" step="0.01" value="0.5"><input id="fInput" type="number" min="0" max="1" step="0.01" value="0.5"></div>
+      </label>
+      <label id="dielectricKControl">Permisividad relativa κ
+        <div class="slider-row"><input id="kSlider" type="range" min="1" max="20" step="0.1" value="3"><input id="kInput" type="number" min="1" max="20" step="0.1" value="3"></div>
+      </label>
+      <label>Escala paneles / medidores
+        <div class="slider-row"><input id="uiScaleSlider" type="range" min="0.65" max="1.45" step="0.05" value="1"><input id="uiScaleInput" type="number" min="0.65" max="1.45" step="0.05" value="1"></div>
+      </label>
+      <div class="hint" id="sliderHint">En la figura puedes arrastrar: control de batería, manija de d, manija de A, dieléctrico, perilla κ y también mover los paneles de medidores para que no choquen.</div>
+    </section>
+
+    <section class="group" id="advancedControls">
+      <div class="group-title">Parámetros avanzados</div>
+      <div class="grid-2">
+        <label>θ grados <input id="thetaInput" type="number" min="0" max="25" step="0.5" value="5"></label>
+        <label>a conductor (mm) <input id="aInput" type="number" min="0" max="19" step="0.1" value="2"></label>
+      </div>
+      <div class="group">
+        <label>κ₁
+          <div class="slider-row"><input id="k1Slider" type="range" min="1" max="20" step="0.1" value="2"><input id="k1Input" type="number" min="1" max="20" step="0.1" value="2"></div>
+        </label>
+        <label>κ₂
+          <div class="slider-row"><input id="k2Slider" type="range" min="1" max="20" step="0.1" value="4"><input id="k2Input" type="number" min="1" max="20" step="0.1" value="4"></div>
+        </label>
+        <label>κ₃
+          <div class="slider-row"><input id="k3Slider" type="range" min="1" max="20" step="0.1" value="6"><input id="k3Input" type="number" min="1" max="20" step="0.1" value="6"></div>
+        </label>
+      </div>
+      <div class="grid-2">
+        <label>L cilindro (cm) <input id="LInput" type="number" min="2" max="40" step="1" value="12"></label>
+        <label>R₁ cilindro (cm) <input id="R1Input" type="number" min="0.2" max="4" step="0.1" value="0.8"></label>
+      </div>
+      <div class="grid-2">
+        <label>R₂ cilindro (cm) <input id="R2Input" type="number" min="0.5" max="8" step="0.1" value="2.2"></label>
+        <label>Modo <select id="problemMode"><option value="directo">Directo</option><option value="comparativo">Comparativo</option></select></label>
+      </div>
+    </section>
+
+    <section class="group" id="capCircuitControls">
+        <div class="group-title">Capacitores del circuito (µF)</div>
+        <label class="check-row">
+          <input id="c1DielectricCheck" type="checkbox">
+          Dieléctrico parcial en C₁
+        </label>
+        <label>C₁
+          <div class="slider-row"><input id="C1Slider" type="range" min="0.5" max="20" step="0.1" value="6"><input id="C1Input" type="number" min="0.5" max="20" step="0.1" value="6"></div>
+        </label>
+        <label>C₂
+          <div class="slider-row"><input id="C2Slider" type="range" min="0.5" max="20" step="0.1" value="4"><input id="C2Input" type="number" min="0.5" max="20" step="0.1" value="4"></div>
+        </label>
+        <label>C₃
+          <div class="slider-row"><input id="C3Slider" type="range" min="0.5" max="20" step="0.1" value="4"><input id="C3Input" type="number" min="0.5" max="20" step="0.1" value="4"></div>
+        </label>
+        <label>C₄
+          <div class="slider-row"><input id="C4Slider" type="range" min="0.5" max="20" step="0.1" value="4"><input id="C4Input" type="number" min="0.5" max="20" step="0.1" value="4"></div>
+        </label>
+        <label>C₅
+          <div class="slider-row"><input id="C5Slider" type="range" min="0.5" max="20" step="0.1" value="6"><input id="C5Input" type="number" min="0.5" max="20" step="0.1" value="6"></div>
+        </label>
+        <label>C₆
+          <div class="slider-row"><input id="C6Slider" type="range" min="0.5" max="20" step="0.1" value="6"><input id="C6Input" type="number" min="0.5" max="20" step="0.1" value="6"></div>
+        </label>
+    </section>
+
+    <section class="lesson-card">
+      <strong id="lessonTitle">Idea clave</strong>
+      <p id="lessonText"></p>
+      <div class="solution-key show" id="stateExplanation"></div>
+    </section>
+  </aside>
+
+  <section class="panel stage">
+    <div class="canvas-top">
+      <div class="canvas-title">
+        <strong id="scenarioName"></strong>
+        <span id="scenarioPrompt"></span>
+      </div>
+      <div class="small-actions">
+        <button id="saveRowBtn">Guardar fila</button>
+        <button id="clearRowsBtn">Limpiar tabla</button>
+        <button id="predictBtn">Predicción</button>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="simCanvas" width="980" height="680" aria-label="Figura interactiva de capacitancia"></canvas>
+    </div>
+
+    <div class="formula-panel show" id="formulaPanel">
+      <div class="formula-title">Fórmulas usadas</div>
+      <div class="formula-list" id="formulaList"></div>
+    </div>
+
+    <div class="development-panel" id="developmentPanel">
+      <div class="formula-title">Desarrollo sugerido</div>
+      <ol id="developmentList"></ol>
+    </div>
+
+    <div class="table-panel" id="tablePanel">
+      <div class="formula-title">Tabla de resultados</div>
+      <table>
+        <thead><tr><th>#</th><th>Escenario</th><th>Estado</th><th>C</th><th>Q</th><th>V</th><th>E</th><th>U</th><th>κ</th></tr></thead>
+        <tbody id="tableRows"></tbody>
+      </table>
+    </div>
+
+    <div class="readouts">
+      <div class="readout"><span>Capacitancia C</span><strong id="cRead">—</strong></div>
+      <div class="readout"><span>Carga Q</span><strong id="qRead">—</strong></div>
+      <div class="readout"><span>Voltaje V</span><strong id="vRead">—</strong></div>
+      <div class="readout"><span>Campo E</span><strong id="eRead">—</strong></div>
+      <div class="readout"><span>Energía U</span><strong id="uRead">—</strong></div>
+      <div class="readout"><span id="pLabel">Cambio energía</span><strong id="pRead">—</strong></div>
+    </div>
+  </section>
+
+  <aside class="panel test-panel">
+    <section class="group">
+      <div class="group-title">Autotest / Quiz</div>
+      <label>Nombre completo del estudiante <input id="studentName" placeholder="Nombre y apellido"></label>
+      <label>Correo del estudiante <input id="studentEmail" type="email" placeholder="correo@ejemplo.com"></label>
+      <label>Nivel
+        <select id="levelSelect">
+          <option value="basico">Básico</option>
+          <option value="medio">Medio</option>
+          <option value="avanzado" selected>Avanzado</option>
+        </select>
+      </label>
+      <label class="check-row">
+        <input id="examModeCheck" type="checkbox" checked>
+        Modo examen: respuesta fija
+      </label>
+      <div class="small-actions">
+        <button class="toggle" id="solutionToggle">Solución OFF</button>
+        <button class="primary" id="startTestBtn">Empezar 10 preguntas</button>
+        <button id="resetTestBtn">Reiniciar</button>
+        <button id="printResultsBtn">Imprimir resultados</button>
+        <button id="printKeyBtn">Clave impresa</button>
+      </div>
+      <div class="hint" id="quizInfo">Nivel avanzado: mínimo 10 preguntas numéricas. Tiempo estimado: 25–30 minutos.</div>
+      <div class="hint" id="examKeyBox">Clave impresa: —</div>
+    </section>
+
+    <section class="test-card">
+      <div class="hint" id="testCounter">Pregunta 0/10</div>
+      <div class="question" id="questionText">Inicia el autotest para practicar cálculo y conceptos de capacitancia.</div>
+      <div id="questionMeta" class="hint"></div>
+      <div class="answers" id="answersBox"></div>
+      <div id="numericBox" style="display:none">
+        <input id="numericAnswer" placeholder="Escribe el valor numérico">
+      </div>
+      <div class="solution-key" id="solutionPanel"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="small-actions">
+        <button id="submitBtn" disabled>Responder</button>
+        <button id="nextBtn" disabled>Siguiente</button>
+      </div>
+    </section>
+
+    <section class="result" id="resultBox"></section>
+
+    <section class="lesson-card">
+      <strong>Contenido del quiz</strong>
+      <p>Medio: preguntas numéricas variadas. Avanzado: mínimo 10 numéricas, con cálculo de C, Q, V, E, U y porcentaje de cambio.</p>
+    </section>
+  </aside>
+</main>
+</div>
+
+<script>
+"use strict";
+
+const EPS0 = 8.8541878128e-12;
+const EPS0_TXT = "ε₀=8.854×10⁻¹² F/m";
+const $ = (id) => document.getElementById(id);
+
+const state = {
+  showCharges: true,
+  showField: true,
+  showBars: true,
+  showVoltage: true,
+  showScale: true,
+  showHandles: true,
+  showDielectric: true,
+  showStateBox: true,
+  showKappaBox: true,
+  showMaterialsBox: true,
+  showSceneInfoBox: true,
+  storedQ: null,
+  conductorOffset: 0,
+  angledDragX: null,
+  rows: [],
+  hotspots: {},
+  drag: null,
+  ui: {
+    bars: {x:null, y:null},
+    stateBox: {x:null, y:null},
+    volt: {x:null, y:null},
+    kappaBox: {x:null, y:null},
+    materialsBox: {x:null, y:null},
+    sceneInfo: {x:null, y:null},
+    scale: 1
+  },
+  prevInput: null,
+  prevResult: null,
+  flow: {dir:"none", text:""},
+  quiz: { items: [], idx: 0, score: 0, selected: null, answered: false, seconds: 0, timer: null, level: null, key: null, started: false, attempt: 0, name: "", email: "" }
+};
+
+const scenarios = {
+  basic: {
+    label: "1. Placas paralelas manipulables",
+    prompt: "Manipula voltaje, área, separación, dieléctrico y κ. Observa C, Q, V, E y U.",
+    lesson: "Modelo base: C = ε₀A/d. La capacitancia depende de geometría y material, no de Q ni de V.",
+    draw: "plates",
+    formulas: [["Capacitancia","C = ε₀A/d"],["Carga","Q = CV"],["Campo","E = V/d"],["Energía","U = ½CV²"]]
+  },
+  connected: {
+    hidden: true,
+    label: "2. Conectado: separar placas",
+    prompt: "Batería conectada. El voltaje queda fijo aunque cambies d.",
+    lesson: "Al aumentar d con batería conectada: C baja, Q baja, E baja y U baja.",
+    draw: "plates",
+    forceConnected: true,
+    formulas: [["Condición","V = constante"],["Capacitancia","C = ε₀A/d"],["Carga","Q = CV"],["Energía","U = ½CV²"]]
+  },
+  isolated: {
+    hidden: true,
+    label: "3. Desconectado: separar placas",
+    prompt: "Carga y desconecta. Ahora Q queda fijo y V cambia.",
+    lesson: "Al aumentar d con capacitor aislado: C baja, Q no cambia, V sube y U sube.",
+    draw: "plates",
+    forceDisconnected: true,
+    formulas: [["Condición","Q = constante"],["Voltaje","V = Q/C"],["Campo ideal","E ≈ Q/(ε₀A)"],["Energía","U = Q²/(2C)"]]
+  },
+  dielectricFull: {
+    label: "4. Dieléctrico completo",
+    prompt: "El dieléctrico llena todo el espacio. Cambia κ y compara estados.",
+    lesson: "Si el dieléctrico llena todo el capacitor, C = κC₀.",
+    draw: "dielectricFull",
+    formulas: [["Base","C₀ = ε₀A/d"],["Dieléctrico","C = κC₀"],["Conectado","V fijo, Q aumenta"],["Aislado","Q fijo, V disminuye"]]
+  },
+  dielectricArea: {
+    label: "5. Dieléctrico parcial en área",
+    prompt: "Mete y saca el dieléctrico poco a poco. f indica la fracción insertada.",
+    lesson: "Si el dieléctrico ocupa parte del área, equivale a capacitores en paralelo.",
+    draw: "dielectricArea",
+    formulas: [["Paralelo","C = C_aire + C_κ"],["Fracción","C = C₀[(1-f)+κf]"],["Mismo voltaje","V_aire = V_κ"]]
+  },
+  dielectricThickness: {
+    label: "6. Dieléctrico parcial en espesor",
+    prompt: "El dieléctrico ocupa una fracción del espesor entre placas.",
+    lesson: "Si las capas están una tras otra en dirección del campo, equivale a capacitores en serie.",
+    draw: "dielectricThickness",
+    formulas: [["Serie","V = V_aire + V_κ"],["Fracción","C = C₀/[(1-f)+f/κ]"],["Misma carga","Q_aire = Q_κ"]]
+  },
+  threeMaterials: {
+    label: "7. Tres materiales κ₁, κ₂, κ₃",
+    prompt: "Izquierda κ₁; derecha κ₂ y κ₃ apilados. Es paralelo + serie.",
+    lesson: "Combina reducción por regiones: izquierda en paralelo con derecha; derecha tiene dos capas en serie.",
+    draw: "threeMaterials",
+    formulas: [["Izquierda","C₁ = κ₁C₀/2"],["Derecha","C₂₃ = C₀/(1/κ₂ + 1/κ₃)"],["Total","C = C₁ + C₂₃"]]
+  },
+  conductor: {
+    label: "8. Conductor rectangular central",
+    prompt: "Inserta un conductor neutro de espesor a. Dentro del conductor E = 0.",
+    lesson: "El conductor reduce la separación efectiva a d-a si no toca las placas.",
+    draw: "conductor",
+    formulas: [["Conductor","E = 0 dentro"],["Separación efectiva","d' = d-a"],["Capacitancia","C = ε₀A/(d-a)"]]
+  },
+  angled: {
+    label: "9. Placas con ángulo pequeño",
+    prompt: "Una placa inclinada: se resuelve integrando tiras diferenciales.",
+    lesson: "La separación cambia con x. Para θ pequeño se usa una aproximación lineal.",
+    draw: "angled",
+    formulas: [["Elemento","dC = ε₀a dx/(d+xθ)"],["Aproximación","C ≈ ε₀a²/d(1-aθ/2d)"],["Ángulo","θ en radianes"]]
+  },
+  cylinder: {
+    label: "10. Capacitor cilíndrico con medio dieléctrico",
+    prompt: "Coaxial con mitad de longitud en aire y mitad con dieléctrico.",
+    lesson: "La mitad con aire y la mitad con dieléctrico están en paralelo a lo largo de L.",
+    draw: "cylinder",
+    formulas: [["Coaxial","C₀=2π ε₀L/ln(R₂/R₁)"],["Mitad dieléctrico","C=C₀(1+κ)/2"],["Energía","U=½CV² o Q²/(2C)"]]
+  },
+  fig2530: {
+    hidden: true,
+    label: "11. Red mixta de 5 capacitores",
+    prompt: "C₁ está en paralelo con una rama mixta: ((C₂ en serie con C₃) en paralelo con C₄) y luego en serie con C₅.",
+    lesson: "Primero reduce la serie C₂-C₃, luego suma en paralelo con C₄, después combina en serie con C₅ y finalmente suma en paralelo con C₁.",
+    draw: "circuit2530",
+    formulas: [["Serie","C₂₃=C₂C₃/(C₂+C₃)"],["Paralelo interno","Csup=C₂₃+C₄"],["Serie derecha","Cder=Csup·C₅/(Csup+C₅)"],["Total","Ceq=C₁+Cder"]]
+  },
+  fig2531: {
+    hidden: true,
+    label: "12. Dos bloques en serie",
+    prompt: "Entre el nodo superior y el nodo medio están en paralelo C₂, C₄ y la serie C₅-C₃. Entre el nodo medio y el inferior están en paralelo C₁ y C₆.",
+    lesson: "Reduce primero C₅-C₃ en serie, forma el bloque superior en paralelo, forma el bloque inferior en paralelo y finalmente combina ambos bloques en serie.",
+    draw: "circuit2531",
+    formulas: [["Serie central","C₅₃=C₅C₃/(C₅+C₃)"],["Bloque superior","C_A=C₂+C₄+C₅₃"],["Bloque inferior","C_B=C₁+C₆"],["Total","Ceq=C_AC_B/(C_A+C_B)"]]
+  },
+  fig2532: {
+    hidden: true,
+    label: "13. C₁ en serie con (C₂ ∥ C₃)",
+    prompt: "Primero suma C₂ y C₃ en paralelo; después combina ese bloque en serie con C₁.",
+    lesson: "En la rama derecha, C₂ y C₃ comparten el mismo voltaje. Ese bloque queda en serie con C₁.",
+    draw: "circuit2532",
+    formulas: [["Paralelo","C₂₃=C₂+C₃"],["Serie final","Ceq=C₁C₂₃/(C₁+C₂₃)"],["Carga","Q=CeqV"]]
+  },
+  activity: {
+    label: "14. Actividad: llenar tabla",
+    prompt: "Usa el circuito serie-paralelo, cambia V y las capacitancias, y guarda filas con la solución equivalente.",
+    lesson: "La tabla ayuda a comparar cómo cambian Ceq, Q, U y las cargas de cada rama cuando cambian V y Cᵢ.",
+    draw: "circuit2532",
+    formulas: [["Tabla","guardar C,Q,V,U"],["Comparación","cambiar V y Cᵢ"],["Predicción","antes de calcular"]]
+  },
+  sphere: {
+    label: "15. Condensador esférico",
+    prompt: "Usa la figura de referencia y calcula la capacitancia de dos capas esféricas concéntricas de radios R₁ y R₂.",
+    lesson: "Para el condensador esférico, la ley de Gauss da E(r)=Q/(4π ε₀ r²) y C = 4π ε₀ R₁R₂/(R₂-R₁).",
+    draw: "sphereRef",
+    formulas: [["Campo entre capas","E(r)=Q/(4π ε₀ r²)"],["Potencial","V=Q/(4π ε₀)(1/R₁-1/R₂)"],["Capacitancia","C=4π ε₀ R₁R₂/(R₂-R₁)"]]
+  },
+  cylinderStd: {
+    label: "16. Condensador cilíndrico",
+    prompt: "Figura de referencia del capacitor cilíndrico estándar. Aquí la fórmula correcta usa ln(R₂/R₁).",
+    lesson: "Para dos cilindros coaxiales de longitud L, el campo es E(r)=Q/(2π ε₀ L r) y la capacitancia es C = 2π ε₀ L / ln(R₂/R₁).",
+    draw: "cylinderStdRef",
+    formulas: [["Campo entre cilindros","E(r)=Q/(2π ε₀ L r)"],["Potencial","V=Q/(2π ε₀ L) ln(R₂/R₁)"],["Capacitancia","C=2π ε₀ L/ln(R₂/R₁)"]]
+  },
+  dielectricForce: {
+    label: "17. Fuerza sobre un dieléctrico",
+    prompt: "Mira la figura de referencia y compara la fuerza cuando el capacitor está conectado a la batería o desconectado.",
+    lesson: "Si el dieléctrico entra en un capacitor de placas paralelas, la fuerza apunta hacia adentro porque la capacitancia aumenta al aumentar x.",
+    draw: "forceRef",
+    formulas: [["Conectado (V cte)","F=½ V² dC/dx"],["Desconectado (Q cte)","F=Q²/(2C²)·dC/dx"],["Parcial en área","C=C₀[(1-f)+κf]"]]
+  }
+,
+  fig2555: {
+    label: "13. Serie y paralelo",
+    prompt: "Circuito equivalente serie-paralelo. Cambia V y C₁...C₆ para observar C_eq, voltajes y cargas.",
+    lesson: "El circuito se reduce como C₁ en serie con el bloque superior C₂∥C₃∥C₄ y luego con el bloque inferior C₅∥C₆. Las placas de cada capacitor separan los nodos; ningún bus debe atravesarlas.",
+    draw: "circuit2555",
+    formulas: [["Bloque superior","C₂₃₄=C₂+C₃+C₄"],["Bloque inferior","C₅₆=C₅+C₆"],["Serie total","1/Ceq=1/C₁+1/C₂₃₄+1/C₅₆"],["Carga total","Q=CeqV"],["Paralelo","V₂=V₃=V₄ y V₅=V₆"]]
+  }};
+
+["fig2530","fig2531","fig2532"].forEach(k => { if(scenarios[k]) scenarios[k].hidden = true; });
+if(scenarios.activity){
+  scenarios.activity.label = "11. Actividad: llenar tabla comparativa";
+  scenarios.activity.prompt = "Usa el capacitor básico, cambia V, d, A, κ y el estado conectado/desconectado; luego guarda filas y compara patrones.";
+  scenarios.activity.lesson = "La tabla compara qué magnitudes permanecen constantes y cuáles cambian en conectado y desconectado.";
+  scenarios.activity.draw = "plates";
+  scenarios.activity.formulas = [["Tabla","guardar C,Q,V,E,U"],["Comparación","conectado vs desconectado"],["Predicción","antes de calcular"]];
+}
+if(scenarios.sphere){
+  scenarios.sphere.label = "12. Condensador esférico";
+  scenarios.sphere.prompt = "Dibujo original: dos capas esféricas concéntricas. Ajusta R₁, R₂ y V.";
+  scenarios.sphere.draw = "sphereOriginal";
+}
+if(scenarios.cylinderStd){
+  scenarios.cylinderStd.label = "13. Condensador cilíndrico";
+  scenarios.cylinderStd.prompt = "Dibujo original: cilindros coaxiales. La fórmula correcta usa ln(R₂/R₁).";
+  scenarios.cylinderStd.draw = "cylinderOriginal";
+}
+scenarios.connected.hidden = true;
+scenarios.isolated.hidden = true;
+if(scenarios.fig2530) scenarios.fig2530.hidden = true;
+if(scenarios.fig2531) scenarios.fig2531.hidden = true;
+if(scenarios.fig2532) scenarios.fig2532.hidden = true;
+if(scenarios.dielectricForce){
+  scenarios.dielectricForce.label = "14. Fuerza sobre un dieléctrico";
+  scenarios.dielectricForce.prompt = "Dibujo original: observa la inserción del dieléctrico y compara la fuerza con batería conectada o desconectada.";
+  scenarios.dielectricForce.draw = "forceOriginal";
+}
+
+const canvas = $("simCanvas");
+const ctx = canvas.getContext("2d");
+const QUIZ_COUNT = 10;
+
+function baseScenarioLabel(label){ return String(label || "").replace(/^\s*\d+\.\s*/, ""); }
+function visibleScenarioKeys(){ return Object.keys(scenarios).filter(key => !scenarios[key].hidden); }
+function scenarioDisplayLabel(key){ const keys=visibleScenarioKeys(); const n=keys.indexOf(key)+1; return `${n}. ${baseScenarioLabel(scenarios[key].label)}`; }
+function rebuildScenarioSelect(selectedKey=null){
+  const select=$("scenarioSelect");
+  const keep=selectedKey || select.value || visibleScenarioKeys()[0];
+  select.innerHTML="";
+  visibleScenarioKeys().forEach(key => { const op=document.createElement("option"); op.value=key; op.textContent=scenarioDisplayLabel(key); select.appendChild(op); });
+  select.value = visibleScenarioKeys().includes(keep) ? keep : visibleScenarioKeys()[0];
+}
+window.insertScenario = function(key, scenario, afterKey=null){
+  const entries=Object.entries(scenarios), rebuilt={};
+  for(const [k,v] of entries){ rebuilt[k]=v; if(k===afterKey) rebuilt[key]=scenario; }
+  if(!afterKey) rebuilt[key]=scenario;
+  Object.keys(scenarios).forEach(k=>delete scenarios[k]); Object.assign(scenarios,rebuilt);
+  rebuildScenarioSelect(key); update();
+};
+window.deleteScenario = function(key){ if(!scenarios[key]) return; scenarios[key].hidden=true; rebuildScenarioSelect(); update(); };
+
+function init(){
+  rebuildScenarioSelect();
+
+  bindPair("VSlider","VInput");
+  bindPair("ASlider","AInput");
+  bindPair("dSlider","dInput");
+  bindPair("fSlider","fInput");
+  bindPair("kSlider","kInput");
+  bindPair("uiScaleSlider","uiScaleInput");
+  bindPair("k1Slider","k1Input");
+  bindPair("k2Slider","k2Input");
+  bindPair("k3Slider","k3Input");
+  bindPair("C1Slider","C1Input");
+  bindPair("C2Slider","C2Input");
+  bindPair("C3Slider","C3Input");
+  bindPair("C4Slider","C4Input");
+  bindPair("C5Slider","C5Input");
+  bindPair("C6Slider","C6Input");
+
+  ["scenarioSelect","batteryCheck","c1DielectricCheck","thetaInput","aInput","k1Input","k2Input","k3Input","LInput","R1Input","R2Input","C1Input","C2Input","C3Input","C4Input","C5Input","C6Input","problemMode","levelSelect"].forEach(id => {
+    $(id).addEventListener("input", () => { if(id==="scenarioSelect") state.showSceneInfoBox = true; update(); });
+    $(id).addEventListener("change", () => { if(id==="scenarioSelect") state.showSceneInfoBox = true; update(); });
+  });
+
+  const toggles = [
+    ["chargesBtn","showCharges","Cargas"],
+    ["fieldBtn","showField","Campo"],
+    ["barsBtn","showBars","Medidores"],
+    ["voltageBtn","showVoltage","Voltaje"],
+    ["scaleBtn","showScale","Escala"],
+    ["handlesBtn","showHandles","Manijas"],
+    ["dielectricBtn","showDielectric","Dieléctrico"]
+  ];
+  toggles.forEach(([id,key,label]) => {
+    $(id).addEventListener("click", () => {
+      state[key] = !state[key];
+      $(id).classList.toggle("active", state[key]);
+      $(id).textContent = `${label} ${state[key] ? "ON" : "OFF"}`;
+      update();
+    });
+  });
+
+  $("formulaBtn").addEventListener("click", () => {
+    if(state.quiz && state.quiz.started && state.quiz.examMode) return;
+    togglePanel("formulaPanel","formulaBtn","Fórmula");
+  });
+  $("developmentBtn").addEventListener("click", () => {
+    if(state.quiz && state.quiz.started && state.quiz.examMode) return;
+    togglePanel("developmentPanel","developmentBtn","Desarrollo");
+  });
+  $("tableBtn").addEventListener("click", () => togglePanel("tablePanel","tableBtn","Tabla"));
+
+  $("presentationBtn").addEventListener("click", () => {
+    document.body.classList.toggle("presentation");
+    const on = document.body.classList.contains("presentation");
+    $("presentationBtn").classList.toggle("active", on);
+    $("presentationBtn").textContent = `Presentación ${on ? "ON" : "OFF"}`;
+  });
+
+  $("themeSelect").addEventListener("change", () => {
+    const presentation = document.body.classList.contains("presentation");
+    const mobile = document.body.classList.contains("mobile-view");
+    document.body.className = $("themeSelect").value;
+    if (presentation) document.body.classList.add("presentation");
+    if (mobile) document.body.classList.add("mobile-view");
+    update();
+  });
+
+  $("chargeDisconnectBtn").addEventListener("click", () => {
+    const input = readInputs();
+    const result = compute({...input, battery:true});
+    state.storedQ = result.Q;
+    $("batteryCheck").checked = false;
+    update();
+  });
+  $("resetChargeBtn").addEventListener("click", () => {
+    state.storedQ = null;
+    update();
+  });
+  $("saveRowBtn").addEventListener("click", saveRow);
+  $("clearRowsBtn").addEventListener("click", () => { state.rows = []; renderRows(); });
+  $("predictBtn").addEventListener("click", showPrediction);
+
+  $("startTestBtn").addEventListener("click", startQuiz);
+  $("startTestTop").addEventListener("click", startQuiz);
+  $("resetTestBtn").addEventListener("click", resetQuiz);
+  $("submitBtn").addEventListener("click", submitQuiz);
+  $("nextBtn").addEventListener("click", nextQuiz);
+  $("printResultsBtn").addEventListener("click", printResults);
+  $("printKeyBtn").addEventListener("click", printKey);
+  $("examModeCheck").addEventListener("change", enforceSolutionMode);
+  $("solutionToggle").addEventListener("click", () => {
+    if($("examModeCheck").checked){
+      $("feedback").textContent = "Modo examen activo: la solución queda bloqueada hasta terminar o reiniciar.";
+      $("solutionPanel").classList.remove("show");
+      $("solutionPanel").textContent = "";
+      $("solutionToggle").classList.remove("active");
+      $("solutionToggle").textContent = "Solución OFF";
+      return;
+    }
+    const panel = $("solutionPanel");
+    panel.classList.toggle("show");
+    const on = panel.classList.contains("show");
+    $("solutionToggle").classList.toggle("active", on);
+    $("solutionToggle").textContent = `Solución ${on ? "ON" : "OFF"}`;
+  });
+
+  enforceSolutionMode();
+  setupDrag();
+  update();
+}
+
+function enforceSolutionMode(){
+  const exam = $("examModeCheck").checked;
+  if(exam){
+    $("solutionPanel").classList.remove("show");
+    $("solutionPanel").textContent = "";
+    $("solutionToggle").classList.remove("active");
+    $("solutionToggle").textContent = "Solución OFF";
+  }
+  $("solutionToggle").disabled = exam || (state.quiz && state.quiz.started);
+}
+
+function setPanelExamLock(locked){
+  if(locked){
+    $("formulaPanel").classList.remove("show");
+    $("formulaBtn").classList.remove("active");
+    $("formulaBtn").textContent = "Fórmula OFF";
+    $("formulaBtn").disabled = true;
+    $("developmentPanel").classList.remove("show");
+    $("developmentBtn").classList.remove("active");
+    $("developmentBtn").textContent = "Desarrollo OFF";
+    $("developmentBtn").disabled = true;
+  } else {
+    $("formulaBtn").disabled = false;
+    $("developmentBtn").disabled = false;
+  }
+}
+
+function bindPair(rangeId, inputId){
+  const r = $(rangeId), n = $(inputId);
+  r.addEventListener("input", () => { n.value = r.value; update(); });
+  n.addEventListener("input", () => { r.value = n.value; update(); });
+}
+
+function togglePanel(panelId, btnId, label){
+  const panel = $(panelId);
+  panel.classList.toggle("show");
+  const on = panel.classList.contains("show");
+  $(btnId).classList.toggle("active", on);
+  $(btnId).textContent = `${label} ${on ? "ON" : "OFF"}`;
+}
+
+function readInputs(){
+  const battery = $("batteryCheck").checked;
+  return {
+    scenario: $("scenarioSelect").value,
+    battery,
+    V: Number($("VInput").value),
+    Amm2: Number($("AInput").value),
+    A: Number($("AInput").value) * 1e-6,
+    dmm: Number($("dInput").value),
+    d: Number($("dInput").value) * 1e-3,
+    f: clamp(Number($("fInput").value),0,1),
+    k: Number($("kInput").value),
+    theta: Number($("thetaInput").value),
+    a_mm: Number($("aInput").value),
+    a: Number($("aInput").value) * 1e-3,
+    k1: Number($("k1Input").value),
+    k2: Number($("k2Input").value),
+    k3: Number($("k3Input").value),
+    L: Number($("LInput").value) * 1e-2,
+    R1: Number($("R1Input").value) * 1e-2,
+    R2: Number($("R2Input").value) * 1e-2,
+    mode: $("problemMode").value,
+    C1u: Number($("C1Input").value),
+    C2u: Number($("C2Input").value),
+    C3u: Number($("C3Input").value),
+    C4u: Number($("C4Input").value),
+    C5u: Number($("C5Input").value),
+    C6u: Number($("C6Input").value),
+    c1Dielectric: $("c1DielectricCheck").checked
+  };
+}
+
+function updateControlVisibility(input){
+  const isCircuit = input.scenario === "fig2555";
+  $("advancedControls").style.display = isCircuit ? "none" : "";
+  $("areaControl").style.display = isCircuit ? "none" : "";
+  $("distanceControl").style.display = isCircuit ? "none" : "";
+  $("dielectricFractionControl").style.display = isCircuit && !input.c1Dielectric ? "none" : "";
+  $("dielectricKControl").style.display = isCircuit && !input.c1Dielectric ? "none" : "";
+  $("capCircuitControls").style.display = isCircuit ? "" : "none";
+  $("sliderHint").textContent = isCircuit
+    ? "En esta sección usa V y C₁...C₆. Activa el dieléctrico en C₁ si quieres que f y κ modifiquen solo ese capacitor."
+    : "En la figura puedes arrastrar: control de batería, manija de d, manija de A, dieléctrico, perilla κ y también mover los paneles de medidores para que no choquen.";
+}
+
+function baseCap(input){
+  return EPS0 * input.A / input.d;
+}
+
+function compute(input){
+  const C0 = baseCap(input);
+  let C = C0;
+  let extra = {};
+  switch(input.scenario){
+    case "dielectricFull":
+      C = input.k * C0;
+      break;
+    case "dielectricArea":
+      C = C0 * ((1-input.f) + input.k*input.f);
+      break;
+    case "dielectricThickness":
+      C = C0 / ((1-input.f) + input.f/input.k);
+      break;
+    case "threeMaterials": {
+      const Cleft = input.k1*C0/2;
+      const Cright = C0/(1/input.k2 + 1/input.k3);
+      C = Cleft + Cright;
+      extra = {Cleft, Cright};
+      break;
+    }
+    case "conductor": {
+      const dEff = Math.max(0.05e-3, input.d - input.a);
+      C = EPS0 * input.A / dEff;
+      extra = {dEff};
+      break;
+    }
+    case "angled": {
+      const side = Math.sqrt(input.A);
+      const thetaRad = input.theta * Math.PI / 180;
+      C = Math.max(0, EPS0*side*side/input.d * (1 - side*thetaRad/(2*input.d)));
+      extra = {side, thetaRad};
+      break;
+    }
+    case "cylinder": {
+      const ln = Math.log(input.R2/input.R1);
+      const Cc = 2*Math.PI*EPS0*input.L/ln;
+      C = Cc*(1+input.k)/2;
+      extra = {Cc, ln};
+      break;
+    }
+    case "sphere": {
+      const R1 = Math.min(input.R1, input.R2*0.95);
+      const R2 = Math.max(input.R2, R1*1.05);
+      const fShell = clamp(input.f,0,1);
+      const Rm = R1 + fShell*(R2-R1);
+      let denom = (1/R1 - 1/R2);
+      if(fShell > 1e-6){
+        denom = (1/input.k)*(1/R1 - 1/Rm) + (1/Rm - 1/R2);
+      }
+      C = 4*Math.PI*EPS0 / denom;
+      const rmid = 0.5*(R1+R2);
+      extra = {R1, R2, Rm, rmid, fShell};
+      break;
+    }
+    case "cylinderStd": {
+      const R1 = Math.min(input.R1, input.R2*0.95);
+      const R2 = Math.max(input.R2, R1*1.05);
+      const ln = Math.log(R2/R1);
+      C = 2*Math.PI*EPS0*input.L/ln;
+      const rmid = Math.sqrt(R1*R2);
+      extra = {R1, R2, rmid, ln};
+      break;
+    }
+    case "dielectricForce": {
+      C = C0 * ((1-input.f) + input.k*input.f);
+      const side = Math.sqrt(input.A);
+      const dCdx = EPS0*(input.k-1)*side/input.d;
+      extra = {side, dCdx};
+      break;
+    }
+    case "fig2530": {
+      const C1 = input.c1 * 1e-6, C2 = input.c2 * 1e-6, C3 = input.c3 * 1e-6, C4 = input.c4 * 1e-6, C5 = input.c5 * 1e-6;
+      const C23 = C2*C3/(C2+C3);
+      const Csup = C23 + C4;
+      const Cder = Csup*C5/(Csup+C5);
+      C = C1 + Cder;
+      extra = {C1,C2,C3,C4,C5,C23,Csup,Cder};
+      break;
+    }
+    case "fig2531": {
+      const C1 = input.c1 * 1e-6, C2 = input.c2 * 1e-6, C3 = input.c3 * 1e-6, C4 = input.c4 * 1e-6, C5 = input.c5 * 1e-6, C6 = input.c6 * 1e-6;
+      const C53 = C5*C3/(C5+C3);
+      const CA = C2 + C4 + C53;
+      const CB = C1 + C6;
+      C = CA*CB/(CA+CB);
+      extra = {C1,C2,C3,C4,C5,C6,C53,CA,CB};
+      break;
+    }
+    case "fig2532": {
+      const C1 = input.c1 * 1e-6, C2 = input.c2 * 1e-6, C3 = input.c3 * 1e-6;
+      const C23 = C2 + C3;
+      C = C1*C23/(C1+C23);
+      extra = {C1,C2,C3,C23};
+      break;
+    }
+    case "fig2555": {
+      const C1base = Math.max(input.C1u,0.001)*1e-6;
+      const C1factor = input.c1Dielectric ? ((1-input.f) + input.k*input.f) : 1;
+      const C1 = C1base * C1factor;
+      const C2 = Math.max(input.C2u,0.001)*1e-6;
+      const C3 = Math.max(input.C3u,0.001)*1e-6;
+      const C4 = Math.max(input.C4u,0.001)*1e-6;
+      const C5 = Math.max(input.C5u,0.001)*1e-6;
+      const C6 = Math.max(input.C6u,0.001)*1e-6;
+      const C234 = C2 + C3 + C4;
+      const C56 = C5 + C6;
+      C = 1/(1/C1 + 1/C234 + 1/C56);
+      extra = {C1,C1base,C1factor,C2,C3,C4,C5,C6,C234,C56,c1Dielectric:input.c1Dielectric};
+      break;
+    }
+    default:
+      C = C0;
+  }
+
+  let Q, V, U;
+  if (input.battery){
+    V = input.V;
+    Q = C * V;
+    U = 0.5 * C * V * V;
+  } else {
+    Q = state.storedQ ?? C0 * input.V;
+    V = Q / C;
+    U = Q * Q / (2*C);
+  }
+  let E;
+  if(["fig2530","fig2531","fig2532","fig2555"].includes(input.scenario)) E = NaN;
+  else if(input.scenario === "sphere") E = Q / (4*Math.PI*EPS0*extra.rmid*extra.rmid);
+  else if(input.scenario === "cylinderStd") E = Q / (2*Math.PI*EPS0*input.L*extra.rmid);
+  else if(input.scenario === "cylinder") E = Q / (2*Math.PI*EPS0*input.L*Math.sqrt(input.R1*input.R2));
+  else if(input.battery) E = V / input.d;
+  else {
+    if(input.scenario === "dielectricFull") E = Q / (input.k * EPS0 * input.A);
+    else if(["basic","connected","isolated","conductor","dielectricForce"].includes(input.scenario)) E = Q / (EPS0 * input.A);
+    else E = V / input.d;
+  }
+
+  if(input.scenario === "dielectricForce") {
+    const F = input.battery ? 0.5 * V*V * extra.dCdx : (Q*Q/(2*C*C)) * extra.dCdx;
+    extra.force = F;
+  }
+
+  if(input.scenario === "fig2530") {
+    const Qright = extra.Cder * V;
+    const Vsup = Qright / extra.Csup;
+    const q23 = extra.C23 * Vsup;
+    extra.q1 = extra.C1 * V; extra.v1 = V;
+    extra.q2 = q23; extra.q3 = q23; extra.q4 = extra.C4 * Vsup; extra.q5 = Qright;
+    extra.v2 = q23 / extra.C2; extra.v3 = q23 / extra.C3; extra.v4 = extra.q4 / extra.C4; extra.v5 = Qright / extra.C5;
+  } else if(input.scenario === "fig2531") {
+    const Qseries = C * V;
+    const VA = Qseries / extra.CA, VB = Qseries / extra.CB;
+    const q53 = extra.C53 * VA;
+    extra.q1 = extra.C1 * VB; extra.q6 = extra.C6 * VB; extra.v1 = VB; extra.v6 = VB;
+    extra.q2 = extra.C2 * VA; extra.q4 = extra.C4 * VA; extra.v2 = VA; extra.v4 = VA;
+    extra.q3 = q53; extra.q5 = q53; extra.v3 = q53 / extra.C3; extra.v5 = q53 / extra.C5;
+    extra.VA = VA; extra.VB = VB;
+  } else if(input.scenario === "fig2532") {
+    const Qseries = C * V;
+    const V23 = Qseries / extra.C23;
+    extra.q1 = Qseries; extra.v1 = Qseries / extra.C1;
+    extra.q2 = extra.C2 * V23; extra.q3 = extra.C3 * V23; extra.v2 = V23; extra.v3 = V23; extra.V23 = V23;
+  }
+
+  if(input.scenario === "fig2555") {
+    const Qs = Q;
+    const V1 = Qs/extra.C1;
+    const V234 = Qs/extra.C234;
+    const V56 = Qs/extra.C56;
+    extra.Qs = Qs;
+    extra.V1 = V1; extra.V234 = V234; extra.V56 = V56;
+    extra.V2 = V234; extra.V3 = V234; extra.V4 = V234;
+    extra.V5 = V56; extra.V6 = V56;
+    extra.q1 = Qs;
+    extra.q2 = extra.C2 * V234;
+    extra.q3 = extra.C3 * V234;
+    extra.q4 = extra.C4 * V234;
+    extra.q5 = extra.C5 * V56;
+    extra.q6 = extra.C6 * V56;
+    extra.voltageCheck = V1 + V234 + V56;
+  }
+
+  const Uref = 0.5 * C0 * input.V * input.V;
+  const pct = Uref !== 0 ? (U-Uref)/Uref*100 : 0;
+  return {C0,C,Q,V,U,E,pct,...extra};
+}
+
+function analyzeChargeFlow(input, result){
+  if(!input.battery){
+    return {
+      dir: "none",
+      text: "Capacitor aislado: no entra ni sale carga de la batería. La carga total Q del capacitor se conserva; las cargas solo se redistribuyen sobre las placas.",
+      short: "Q constante"
+    };
+  }
+  if(!state.prevInput || !state.prevResult || !state.prevInput.battery){
+    return {
+      dir: "none",
+      text: "Con batería conectada: si Q aumenta, la batería entrega carga al capacitor; si Q disminuye, parte de la carga regresa del capacitor a la batería.",
+      short: "Listo para detectar flujo"
+    };
+  }
+  const dQ = result.Q - state.prevResult.Q;
+  const tol = Math.max(Math.abs(result.Q), Math.abs(state.prevResult.Q), 1e-18) * 1e-6;
+  if(Math.abs(dQ) <= tol){
+    return {
+      dir: "none",
+      text: "No hay cambio apreciable en la carga total Q. La batería no entrega ni recibe carga apreciable en este ajuste.",
+      short: "Q casi constante"
+    };
+  }
+  if(dQ > 0){
+    return {
+      dir: "batteryToCap",
+      text: `La batería entrega más carga al capacitor: la carga sale de la batería y entra a las placas. Q aumentó de ${fmtSI(state.prevResult.Q,"C")} a ${fmtSI(result.Q,"C")}.`,
+      short: "carga sale de la batería"
+    };
+  }
+  return {
+    dir: "capToBattery",
+    text: `Parte de la carga regresa del capacitor a la batería: la carga sale de las placas y vuelve a la batería. Q disminuyó de ${fmtSI(state.prevResult.Q,"C")} a ${fmtSI(result.Q,"C")}.`,
+    short: "carga regresa a la batería"
+  };
+}
+
+function summarizeCause(input){
+  if(!state.prevInput) return "";
+  const changes = [];
+  if(Math.abs(input.V - state.prevInput.V) > 1e-9) changes.push(`V: ${fmt(state.prevInput.V)}→${fmt(input.V)} V`);
+  if(Math.abs(input.Amm2 - state.prevInput.Amm2) > 1e-9) changes.push(`A: ${fmt(state.prevInput.Amm2,0)}→${fmt(input.Amm2,0)} mm²`);
+  if(Math.abs(input.dmm - state.prevInput.dmm) > 1e-9) changes.push(`d: ${fmt(state.prevInput.dmm)}→${fmt(input.dmm)} mm`);
+  if(Math.abs(input.k - state.prevInput.k) > 1e-9) changes.push(`κ: ${fmt(state.prevInput.k)}→${fmt(input.k)}`);
+  if(Math.abs(input.k1 - state.prevInput.k1) > 1e-9 || Math.abs(input.k2 - state.prevInput.k2) > 1e-9 || Math.abs(input.k3 - state.prevInput.k3) > 1e-9){
+    changes.push(`κ₁, κ₂, κ₃ cambiaron`);
+  }
+  return changes.length ? `Cambio detectado: ${changes.join("; ")}.` : "";
+}
+
+function update(){
+  const input = readInputs();
+  if(state.prevInput){
+    if(state.prevInput.battery && !input.battery && state.prevResult) state.storedQ = state.prevResult.Q;
+    if(!state.prevInput.battery && input.battery) state.storedQ = null;
+  }
+  const sc = scenarios[input.scenario];
+  updateControlVisibility(input);
+  const result = compute(input);
+
+  $("batteryCheck").checked = input.battery;
+  $("statePill").textContent = input.battery ? "Batería conectada · V fijo" : "Batería desconectada · Q fijo";
+  const level = $("levelSelect").value;
+  $("timePill").textContent = level === "avanzado" ? "Avanzado: 25–30 min" : (level === "medio" ? "Medio: 15–20 min" : "Básico: 8–12 min");
+
+  $("scenarioName").textContent = scenarioDisplayLabel(input.scenario);
+  $("scenarioPrompt").textContent = sc.prompt;
+  $("scenarioHint").textContent = sc.prompt;
+  $("lessonTitle").textContent = scenarioDisplayLabel(input.scenario);
+  $("lessonText").textContent = sc.lesson;
+  state.flow = analyzeChargeFlow(input, result);
+  const cause = summarizeCause(input);
+  $("stateExplanation").innerHTML = input.battery
+    ? `<b>Estado actual:</b> conectado a batería. El voltaje es fijo.<br><b>Flujo de carga:</b> ${state.flow.text}<br>${cause}${input.scenario==="dielectricForce" ? `<br><b>Fuerza actual:</b> ${fmtSI(result.force,"N")} hacia adentro del capacitor.` : ""}`
+    : `<b>Estado actual:</b> desconectado. La carga Q queda fija; por eso cambian V, E y U.<br><b>Flujo de carga:</b> ${state.flow.text}<br>${cause}${input.scenario==="dielectricForce" ? `<br><b>Fuerza actual:</b> ${fmtSI(result.force,"N")} hacia adentro del capacitor.` : ""}`;
+
+  renderFormulas(sc);
+  renderDevelopment(input, result);
+  renderReadouts(result);
+  drawScene(input, result, sc);
+  if(input.scenario === "activity") { $("tablePanel").classList.add("show"); $("tableBtn").classList.add("active"); $("tableBtn").textContent = "Tabla ON"; }
+  renderRows();
+  state.prevInput = JSON.parse(JSON.stringify(input));
+  state.prevResult = {...result};
+}
+
+function renderFormulas(sc){
+  const input = readInputs();
+  const result = compute(input);
+
+  if(input.scenario === "fig2555"){
+    const chips = [
+      ...(result.c1Dielectric ? [["C₁ con dieléctrico", `C₁ef=C₁[(1−f)+κf] = ${fmtSI(result.C1base,"F")}[(1−${fmt(input.f)})+${fmt(input.k)}(${fmt(input.f)})] = ${fmtSI(result.C1,"F")}`]] : []),
+      ["Bloque superior paralelo", `C₂₃₄=C₂+C₃+C₄ = ${fmtSI(result.C2,"F")}+${fmtSI(result.C3,"F")}+${fmtSI(result.C4,"F")} = ${fmtSI(result.C234,"F")}`],
+      ["Bloque inferior paralelo", `C₅₆=C₅+C₆ = ${fmtSI(result.C5,"F")}+${fmtSI(result.C6,"F")} = ${fmtSI(result.C56,"F")}`],
+      ["Serie total", `1/Ceq = 1/C₁ + 1/C₂₃₄ + 1/C₅₆`],
+      ["Capacitancia equivalente", `Ceq = ${fmtSI(result.C,"F")}`],
+      ["Carga de serie", `Qtotal = Ceq·V = ${fmtSI(result.C,"F")}·${fmt(result.V)} V = ${fmtSI(result.Qs,"C")}`],
+      ["Voltaje en C₁", `V₁ = Qtotal/C₁ = ${fmt(result.V1)} V`],
+      ["Voltaje en bloque superior", `V₂=V₃=V₄ = V₂₃₄ = Qtotal/C₂₃₄ = ${fmt(result.V234)} V`],
+      ["Voltaje en bloque inferior", `V₅=V₆ = V₅₆ = Qtotal/C₅₆ = ${fmt(result.V56)} V`],
+      ["Carga en C₄", `q₄ = C₄V₂₃₄ = ${fmtSI(result.C4,"F")}·${fmt(result.V234)} V = ${fmtSI(result.q4,"C")}`],
+      ["Verificación", `V₁+V₂₃₄+V₅₆ = ${fmt(result.voltageCheck)} V`]
+    ];
+    $("formulaList").innerHTML = chips.map(([name, formula]) =>
+      `<div class="formula-chip"><strong>${name}</strong><code>${formula}</code></div>`
+    ).join("");
+    return;
+  }
+
+  if(input.scenario === "dielectricForce"){
+    const b = Math.sqrt(input.A);
+    const x_mm = input.f * 20;
+    const F_connected = 0.5 * result.V * result.V * result.dCdx;
+    const F_isolated = (result.Q * result.Q / (2 * result.C * result.C)) * result.dCdx;
+    const forceMode = input.battery ? F_connected : F_isolated;
+
+    const chips = [
+      ["Geometría", `x = fL = ${fmt(input.f)}·20 mm = ${fmt(x_mm)} mm`],
+      ["Capacitancia parcial", `C(x)=C₀[(1−f)+κf] = ${fmtSI(result.C0,"F")}[(1−${fmt(input.f)})+${fmt(input.k)}(${fmt(input.f)})] = ${fmtSI(result.C,"F")}`],
+      ["Pendiente constante", `dC/dx = ε₀(κ−1)b/d = ε₀(${fmt(input.k)}−1)(${fmtSI(b,"m")})/${fmtSI(input.d,"m")} = ${fmtSI(result.dCdx,"F/m")}`],
+      ["Por qué no cambia dC/dx", `En este modelo C(x) es lineal en x; por eso dC/dx no depende de x, solo de κ, b y d.`],
+      ["Conectado: V constante", `F_V = ½V²(dC/dx) = ½(${fmt(result.V)} V)²(${fmtSI(result.dCdx,"F/m")}) = ${fmtSI(F_connected,"N")}`],
+      ["Desconectado: Q constante", `F_Q = Q²/(2C²)(dC/dx) = ${fmtSI(F_isolated,"N")}`],
+      ["Fuerza usada ahora", `${input.battery ? "Conectado" : "Desconectado"} → F = ${fmtSI(forceMode,"N")} hacia adentro`],
+      ["Carga", input.battery ? `Q=CV=${fmtSI(result.C,"F")}·${fmt(result.V)} V = ${fmtSI(result.Q,"C")}` : `Q se conserva = ${fmtSI(result.Q,"C")}`],
+      ["Campo", `E = V/d = ${fmt(result.V)} V / ${fmtSI(input.d,"m")} = ${fmtSI(result.E,"V/m")}`],
+      ["Energía", input.battery ? `U=½CV²=${fmtSI(result.U,"J")}` : `U=Q²/(2C)=${fmtSI(result.U,"J")}`]
+    ];
+
+    $("formulaList").innerHTML = chips.map(([name, formula]) =>
+      `<div class="formula-chip"><strong>${name}</strong><code>${formula}</code></div>`
+    ).join("");
+    return;
+  }
+
+  $("formulaList").innerHTML = sc.formulas.map(([name, formula]) =>
+    `<div class="formula-chip"><strong>${name}</strong><code>${formula}</code></div>`
+  ).join("");
+}
+
+function renderDevelopment(input, result){
+  if(input.scenario === "fig2555"){
+    const raw = [
+      ["Estrategia", "Identificar la topología: C₁ está en serie con dos bloques de capacitores en paralelo."],
+      ["Estrategia", "El bloque superior contiene C₂, C₃ y C₄ en paralelo, porque comparten los mismos dos nodos."],
+      ["Estrategia", "El bloque inferior contiene C₅ y C₆ en paralelo, porque también comparten los mismos dos nodos."],
+      ["Análisis", `Datos: V=${fmt(result.V)} V, C₁=${fmtSI(result.C1,"F")}, C₂=${fmtSI(result.C2,"F")}, C₃=${fmtSI(result.C3,"F")}, C₄=${fmtSI(result.C4,"F")}, C₅=${fmtSI(result.C5,"F")}, C₆=${fmtSI(result.C6,"F")}.`],
+      ...(result.c1Dielectric ? [["Desarrollo", `Dieléctrico parcial en C₁: C₁ef = C₁[(1−f)+κf] = ${fmtSI(result.C1,"F")}.`]] : []),
+      ["Desarrollo", `Reducir el bloque superior: C₂₃₄ = C₂+C₃+C₄ = ${fmtSI(result.C234,"F")}.`],
+      ["Desarrollo", `Reducir el bloque inferior: C₅₆ = C₅+C₆ = ${fmtSI(result.C56,"F")}.`],
+      ["Desarrollo", "Ahora el circuito queda como tres capacitores en serie: C₁, C₂₃₄ y C₅₆."],
+      ["Desarrollo", "Aplicar serie: 1/Ceq = 1/C₁ + 1/C₂₃₄ + 1/C₅₆."],
+      ["Desarrollo", `Sustituyendo se obtiene Ceq = ${fmtSI(result.C,"F")}.`],
+      ["Desarrollo", "En una serie, la carga de cada bloque equivalente es la misma: Q₁ = Q₂₃₄ = Q₅₆ = Qtotal."],
+      ["Desarrollo", `Qtotal = Ceq·V = ${fmtSI(result.C,"F")}·${fmt(result.V)} V = ${fmtSI(result.Qs,"C")}.`],
+      ["Desarrollo", `Voltaje en C₁: V₁ = Qtotal/C₁ = ${fmt(result.V1)} V.`],
+      ["Desarrollo", `Voltaje en el bloque superior: V₂₃₄ = Qtotal/C₂₃₄ = ${fmt(result.V234)} V. Por paralelo, V₂=V₃=V₄=${fmt(result.V234)} V.`],
+      ["Desarrollo", `Voltaje en el bloque inferior: V₅₆ = Qtotal/C₅₆ = ${fmt(result.V56)} V. Por paralelo, V₅=V₆=${fmt(result.V56)} V.`],
+      ["Desarrollo", `Cargas del bloque superior: q₂=${fmtSI(result.q2,"C")}, q₃=${fmtSI(result.q3,"C")}, q₄=${fmtSI(result.q4,"C")}. La suma q₂+q₃+q₄ debe dar Qtotal.`],
+      ["Desarrollo", `Cargas del bloque inferior: q₅=${fmtSI(result.q5,"C")}, q₆=${fmtSI(result.q6,"C")}. La suma q₅+q₆ debe dar Qtotal.`],
+      ["Resultado", `Ceq=${fmtSI(result.C,"F")}, Qtotal=${fmtSI(result.Qs,"C")}, q₄=${fmtSI(result.q4,"C")}.`]
+    ];
+    $("developmentList").innerHTML = raw.map(([name,text],i) => `<li><b>${name} ${i+1}.</b> ${text}</li>`).join("");
+    return;
+  }
+  if(input.scenario === "fig2530"){
+    const steps = [
+      "<b>Estrategia 1.</b> Identificar dos ramas en paralelo: la rama izquierda con C₁ y la rama derecha compuesta.",
+      "<b>Estrategia 2.</b> En la rama derecha, reducir primero la serie C₂-C₃.",
+      "<b>Estrategia 3.</b> Sumar en paralelo el resultado de C₂-C₃ con C₄; luego combinar en serie con C₅.",
+      `<b>Desarrollo 4.</b> C₂₃ = ${fmtSI(result.C23,"F")}.`,
+      `<b>Desarrollo 5.</b> Csup = C₂₃ + C₄ = ${fmtSI(result.Csup,"F")}.`,
+      `<b>Desarrollo 6.</b> Cder = Csup·C₅/(Csup+C₅) = ${fmtSI(result.Cder,"F")}.`,
+      `<b>Desarrollo 7.</b> Ceq = C₁ + Cder = ${fmtSI(result.C,"F")}.`,
+      `<b>Desarrollo 8.</b> Q_total = Ceq·V = ${fmtSI(result.Q,"C")}.`,
+      `<b>Desarrollo 9.</b> q₁ = ${fmtSI(result.q1,"C")}; q₂ = q₃ = ${fmtSI(result.q2,"C")}; q₄ = ${fmtSI(result.q4,"C")}; q₅ = ${fmtSI(result.q5,"C")}.`,
+      `<b>Resultado 10.</b> Ceq = ${fmtSI(result.C,"F")}, U = ${fmtSI(result.U,"J")}.`
+    ];
+    $("developmentList").innerHTML = steps.map(s => `<li>${s}</li>`).join("");
+    return;
+  }
+  if(input.scenario === "fig2531"){
+    const steps = [
+      "<b>Estrategia 1.</b> Reconocer dos bloques en serie: bloque superior A y bloque inferior B.",
+      "<b>Estrategia 2.</b> En el bloque A, reducir primero la serie C₅-C₃.",
+      "<b>Estrategia 3.</b> Sumar en paralelo C₂, C₄ y C₅₃ para obtener C_A; sumar en paralelo C₁ y C₆ para obtener C_B.",
+      `<b>Desarrollo 4.</b> C₅₃ = ${fmtSI(result.C53,"F")}.`,
+      `<b>Desarrollo 5.</b> C_A = ${fmtSI(result.CA,"F")}.`,
+      `<b>Desarrollo 6.</b> C_B = ${fmtSI(result.CB,"F")}.`,
+      `<b>Desarrollo 7.</b> Ceq = C_A C_B /(C_A+C_B) = ${fmtSI(result.C,"F")}.`,
+      `<b>Desarrollo 8.</b> Q de la serie = ${fmtSI(result.Q,"C")}; V_A = ${fmt(result.VA)} V; V_B = ${fmt(result.VB)} V.`,
+      `<b>Desarrollo 9.</b> q₁ = ${fmtSI(result.q1,"C")}, q₂ = ${fmtSI(result.q2,"C")}, q₃ = ${fmtSI(result.q3,"C")}, q₄ = ${fmtSI(result.q4,"C")}, q₅ = ${fmtSI(result.q5,"C")}, q₆ = ${fmtSI(result.q6,"C")}.`,
+      `<b>Resultado 10.</b> Ceq = ${fmtSI(result.C,"F")}, U = ${fmtSI(result.U,"J")}.`
+    ];
+    $("developmentList").innerHTML = steps.map(s => `<li>${s}</li>`).join("");
+    return;
+  }
+  if(input.scenario === "fig2532"){
+    const steps = [
+      "<b>Estrategia 1.</b> Sumar primero C₂ y C₃ porque están en paralelo.",
+      "<b>Estrategia 2.</b> Combinar el bloque C₂₃ en serie con C₁.",
+      "<b>Estrategia 3.</b> La carga de la serie es la misma en C₁ y en el bloque C₂₃.",
+      `<b>Desarrollo 4.</b> C₂₃ = ${fmtSI(result.C23,"F")}.`,
+      `<b>Desarrollo 5.</b> Ceq = C₁C₂₃/(C₁+C₂₃) = ${fmtSI(result.C,"F")}.`,
+      `<b>Desarrollo 6.</b> Q_total = Ceq·V = ${fmtSI(result.Q,"C")}.`,
+      `<b>Desarrollo 7.</b> V₁ = ${fmt(result.v1)} V y V₂₃ = ${fmt(result.V23)} V.`,
+      `<b>Desarrollo 8.</b> q₁ = ${fmtSI(result.q1,"C")}.`,
+      `<b>Desarrollo 9.</b> q₂ = ${fmtSI(result.q2,"C")} y q₃ = ${fmtSI(result.q3,"C")}.`,
+      `<b>Resultado 10.</b> Ceq = ${fmtSI(result.C,"F")}, U = ${fmtSI(result.U,"J")}.`
+    ];
+    $("developmentList").innerHTML = steps.map(s => `<li>${s}</li>`).join("");
+    return;
+  }
+  if(input.scenario === "sphere"){
+    const steps = [
+      "<b>Estrategia 1.</b> Aplicar ley de Gauss a una superficie esférica de radio r entre R₁ y R₂.",
+      `<b>Estrategia 2.</b> Usar E(r)=Q/(4π ε₀ r²) y luego integrar para la diferencia de potencial.`,
+      `<b>Estrategia 3.</b> Con V=Q/(4π ε₀)(1/R₁-1/R₂), despejar C = Q/V.`,
+      `<b>Desarrollo 4.</b> R₁ = ${fmt(input.R1*100)} cm y R₂ = ${fmt(input.R2*100)} cm.`,
+      `<b>Desarrollo 5.</b> C = 4π ε₀ R₁R₂/(R₂-R₁) = ${fmtSI(result.C,"F")}.`,
+      `<b>Desarrollo 6.</b> Q = CV = ${fmtSI(result.Q,"C")}.`,
+      `<b>Desarrollo 7.</b> Campo en r medio = ${fmtSI(result.E,"V/m")}.`,
+      `<b>Desarrollo 8.</b> Energía U = ${fmtSI(result.U,"J")}.`,
+      `<b>Desarrollo 9.</b> La carga reside en las superficies conductoras.`,
+      `<b>Resultado 10.</b> Capacitancia esférica = ${fmtSI(result.C,"F")}.`
+    ];
+    $("developmentList").innerHTML = steps.map(s => `<li>${s}</li>`).join("");
+    return;
+  }
+  if(input.scenario === "cylinderStd"){
+    const steps = [
+      "<b>Estrategia 1.</b> Aplicar ley de Gauss a una superficie cilíndrica coaxial de radio r y longitud L.",
+      `<b>Estrategia 2.</b> Usar E(r)=Q/(2π ε₀ L r).`,
+      `<b>Estrategia 3.</b> Integrar V = ∫ E·dr = Q/(2π ε₀ L) ln(R₂/R₁).`,
+      `<b>Desarrollo 4.</b> La fórmula correcta lleva ln(R₂/R₁), no otra expresión.`,
+      `<b>Desarrollo 5.</b> C = 2π ε₀L/ln(R₂/R₁) = ${fmtSI(result.C,"F")}.`,
+      `<b>Desarrollo 6.</b> Q = CV = ${fmtSI(result.Q,"C")}.`,
+      `<b>Desarrollo 7.</b> Campo en r geométrico = ${fmtSI(result.E,"V/m")}.`,
+      `<b>Desarrollo 8.</b> Energía U = ${fmtSI(result.U,"J")}.`,
+      `<b>Desarrollo 9.</b> Entre cilindros el campo es radial.`,
+      `<b>Resultado 10.</b> Capacitancia cilíndrica = ${fmtSI(result.C,"F")}.`
+    ];
+    $("developmentList").innerHTML = steps.map(s => `<li>${s}</li>`).join("");
+    return;
+  }
+  if(input.scenario === "dielectricForce"){
+    const b = Math.sqrt(input.A);
+    const L = 20e-3; // longitud visual/equivalente usada para x=fL
+    const x = input.f * L;
+    const C_air = result.C0 * (1-input.f);
+    const C_die = result.C0 * input.k * input.f;
+    const F_connected = 0.5 * result.V * result.V * result.dCdx;
+    const F_isolated = (result.Q * result.Q / (2 * result.C * result.C)) * result.dCdx;
+    const steps = [
+      "<b>Estrategia 1.</b> El dieléctrico entra lateralmente entre las placas; la parte con aire y la parte con dieléctrico quedan en paralelo.",
+      `<b>Estrategia 2.</b> Definimos x como la longitud insertada. En esta figura L = 20 mm, así que x = fL = ${fmt(input.f)}·20 mm = ${fmt(x*1000)} mm.`,
+      `<b>Estrategia 3.</b> Hay que comparar dos condiciones: conectado a batería (V constante) y desconectado (Q constante).`,
+      `<b>Análisis 4.</b> El ancho transversal es b = √A = ${fmtSI(b,"m")}; la separación es d = ${fmtSI(input.d,"m")}; κ = ${fmt(input.k)}.`,
+      `<b>Análisis 5.</b> La zona de aire aporta C_aire = C₀(1−f) = ${fmtSI(C_air,"F")}.`,
+      `<b>Análisis 6.</b> La zona con dieléctrico aporta C_κ = κC₀f = ${fmtSI(C_die,"F")}.`,
+      `<b>Desarrollo 7.</b> Como están en paralelo, C(x)=C_aire+C_κ = C₀[(1−f)+κf] = ${fmtSI(result.C,"F")}.`,
+      `<b>Desarrollo 8.</b> Si usamos x en lugar de f, C(x)=C₀ + [ε₀(κ−1)b/d]x. Esta función es lineal en x.`,
+      `<b>Desarrollo 9.</b> Por eso dC/dx = ε₀(κ−1)b/d = ${fmtSI(result.dCdx,"F/m")}. No cambia al mover el dieléctrico mientras κ, b y d no cambien.`,
+      `<b>Conectado 10.</b> Si la batería está conectada, V es constante y Q sí puede entrar o salir de la batería.`,
+      `<b>Conectado 11.</b> En ese caso U = ½CV² y la fuerza eléctrica es F_V = ½V²(dC/dx).`,
+      `<b>Conectado 12.</b> Sustituyendo: F_V = ½(${fmt(result.V)} V)²(${fmtSI(result.dCdx,"F/m")}) = ${fmtSI(F_connected,"N")}. Como V y dC/dx son constantes, F_V queda constante en este modelo ideal.`,
+      `<b>Desconectado 13.</b> Si el capacitor está desconectado, Q se conserva porque las cargas no tienen camino hacia la batería.`,
+      `<b>Desconectado 14.</b> En ese caso U = Q²/(2C) y la fuerza eléctrica es F_Q = Q²/(2C²)(dC/dx).`,
+      `<b>Desconectado 15.</b> Sustituyendo con los valores actuales: F_Q = ${fmtSI(F_isolated,"N")}. Como C aumenta al entrar el dieléctrico, F_Q disminuye conforme entra más.`,
+      input.battery ? `<b>Desarrollo 16.</b> En el estado actual se usa el caso conectado: Q = CV = ${fmtSI(result.Q,"C")}, E = V/d = ${fmtSI(result.E,"V/m")}, U = ½CV² = ${fmtSI(result.U,"J")}.` : `<b>Desarrollo 16.</b> En el estado actual se usa el caso desconectado: Q = ${fmtSI(result.Q,"C")}, V = Q/C = ${fmt(result.V)} V, E = ${fmtSI(result.E,"V/m")}, U = Q²/(2C) = ${fmtSI(result.U,"J")}.`,
+      `<b>Interpretación 17.</b> La fuerza del campo apunta hacia adentro del capacitor porque al aumentar x aumenta la capacitancia y el sistema tiende a ocupar la región de campo intenso.`,
+      `<b>Resultado 18.</b> dC/dx = ${fmtSI(result.dCdx,"F/m")}; F actual = ${fmtSI(result.force,"N")} hacia adentro. Para sacarlo lentamente, la fuerza externa debe apuntar hacia afuera.`
+    ];
+    $("developmentList").innerHTML = steps.map(s => `<li>${s}</li>`).join("");
+    return;
+  }
+  const steps = [];
+  steps.push("<b>Estrategia 1.</b> Identificar la geometría: placas, dieléctrico, conductor, cilindro o red.");
+  steps.push(`<b>Estrategia 2.</b> Fijar la condición: ${input.battery ? "batería conectada, V constante" : "capacitor aislado, Q constante"}.`);
+  steps.push("<b>Estrategia 3.</b> Convertir A, d, R y L a unidades SI antes de calcular.");
+  steps.push(`<b>Desarrollo 4.</b> Calcular C₀ = ε₀A/d = ${fmtSI(result.C0,"F")}.`);
+  if(input.scenario === "dielectricFull") steps.push(`<b>Desarrollo 5.</b> Aplicar C = κC₀ con κ = ${fmt(input.k)}.`);
+  else if(input.scenario === "dielectricArea") steps.push(`<b>Desarrollo 5.</b> Usar C = C₀[(1-f)+κf], con f = ${fmt(input.f)}.`);
+  else if(input.scenario === "dielectricThickness") steps.push(`<b>Desarrollo 5.</b> Usar C = C₀/[(1-f)+f/κ], con f = ${fmt(input.f)}.`);
+  else if(input.scenario === "threeMaterials") steps.push("<b>Desarrollo 5.</b> Calcular el bloque izquierdo y el bloque derecho, luego sumarlos en paralelo.");
+  else if(input.scenario === "conductor") steps.push(`<b>Desarrollo 5.</b> Usar d' = d-a = ${fmt((input.d-input.a)*1000)} mm.`);
+  else if(input.scenario === "angled") {
+    const thetaRad = input.theta * Math.PI / 180;
+    const side = Math.sqrt(input.A);
+    const longSteps = [
+      `<b>Análisis 4.</b> La placa es cuadrada de lado a = √A = ${fmtSI(side,"m")}.`,
+      `<b>Análisis 5.</b> Para θ pequeño, la separación local se modela como d(x)=d+xθ con θ en radianes.`,
+      `<b>Análisis 6.</b> Se toma una tira diferencial de área dA = a dx.`,
+      `<b>Desarrollo 7.</b> La capacitancia diferencial es dC = ε₀ a dx /(d+xθ).`,
+      `<b>Desarrollo 8.</b> Integrando: C = ∫₀ᵃ ε₀ a dx /(d+xθ).`,
+      `<b>Desarrollo 9.</b> La integral exacta da C = (ε₀ a/θ) ln[(d+aθ)/d].`,
+      `<b>Desarrollo 10.</b> Como θ es pequeño, usamos ln(1+u) ≈ u-u²/2 con u=aθ/d.`,
+      `<b>Desarrollo 11.</b> Sustituyendo la expansión resulta C ≈ ε₀ a²/d (1-aθ/2d).`,
+      `<b>Desarrollo 12.</b> θ = ${fmt(input.theta)}° = ${fmt(thetaRad,4)} rad.`,
+      `<b>Desarrollo 13.</b> Evaluando la expresión aproximada: C = ${fmtSI(result.C,"F")}.`,
+      input.battery ? `<b>Desarrollo 14.</b> Como la batería está conectada, Q = CV = ${fmtSI(result.Q,"C")}.` : `<b>Desarrollo 14.</b> Como el capacitor está aislado, Q permanece fijo y V = Q/C = ${fmt(result.V)} V.`,
+      `<b>Desarrollo 15.</b> El campo promedio se reporta como E = ${fmtSI(result.E,"V/m")}.`,
+      `<b>Desarrollo 16.</b> La energía almacenada es U = ${fmtSI(result.U,"J")}.`,
+      `<b>Solución 17.</b> Fórmula usada: C ≈ ε₀a²/d(1-aθ/2d).`,
+      `<b>Solución 18.</b> Resultado final: C=${fmtSI(result.C,"F")}, Q=${fmtSI(result.Q,"C")}, V=${fmt(result.V)} V, U=${fmtSI(result.U,"J")}.`
+    ];
+    $("developmentList").innerHTML = [
+      "<li><b>Estrategia 1.</b> Identificar que la geometría ya no es de placas paralelas uniformes.</li>",
+      `<li><b>Estrategia 2.</b> Fijar la condición eléctrica: ${input.battery ? "V constante" : "Q constante"}.</li>`,
+      "<li><b>Estrategia 3.</b> Resolver por elementos diferenciales a lo largo del lado de la placa.</li>",
+      ...longSteps.map(s=>`<li>${s}</li>`)
+    ].join("");
+    return;
+  }
+  else if(input.scenario === "cylinder") steps.push("<b>Desarrollo 5.</b> Aplicar la fórmula coaxial y luego el factor de medio dieléctrico.");
+  else steps.push("<b>Desarrollo 5.</b> Mantener el modelo de placas paralelas simple.");
+  steps.push(`<b>Desarrollo 6.</b> Capacitancia final: C = ${fmtSI(result.C,"F")}.`);
+  if(input.battery) steps.push(`<b>Desarrollo 7.</b> Como V es fijo, Q = CV = ${fmtSI(result.Q,"C")}.`);
+  else steps.push(`<b>Desarrollo 7.</b> Como Q es fijo, V = Q/C = ${fmt(result.V)} V.`);
+  steps.push(`<b>Desarrollo 8.</b> Campo eléctrico: E = ${fmtSI(result.E,"V/m")}.`);
+  steps.push(`<b>Desarrollo 9.</b> Energía almacenada: U = ${fmtSI(result.U,"J")}.`);
+  steps.push(`<b>Resultado 10.</b> C = ${fmtSI(result.C,"F")}, Q = ${fmtSI(result.Q,"C")}, V = ${fmt(result.V)} V, U = ${fmtSI(result.U,"J")}.`);
+  $("developmentList").innerHTML = steps.map(s => `<li>${s}</li>`).join("");
+}
+
+function renderReadouts(result){
+  const sc = scenarios[$("scenarioSelect").value];
+  $("cRead").textContent = fmtSI(result.C,"F");
+  $("qRead").textContent = fmtSI(result.Q,"C");
+  $("vRead").textContent = `${fmt(result.V)} V`;
+  $("eRead").textContent = fmtSI(result.E,"V/m");
+  $("uRead").textContent = fmtSI(result.U,"J");
+  if($("scenarioSelect").value === "dielectricForce") {
+    $("pLabel").textContent = "Fuerza F";
+    $("pRead").textContent = fmtSI(result.force,"N");
+  } else if($("scenarioSelect").value === "fig2555") {
+    $("pLabel").textContent = "Carga q₄";
+    $("pRead").textContent = fmtSI(result.q4,"C");
+    $("eRead").textContent = "—";
+  } else {
+    $("pLabel").textContent = "Cambio energía";
+    $("pRead").textContent = `${fmt(result.pct)} %`;
+  }
+}
+
+function saveRow(){
+  const input = readInputs();
+  const r = compute(input);
+  state.rows.push({
+    sc: scenarioDisplayLabel(input.scenario),
+    estado: input.battery ? "Conectado" : "Desconectado",
+    C: fmtSI(r.C,"F"),
+    Q: fmtSI(r.Q,"C"),
+    V: `${fmt(r.V)} V`,
+    E: fmtSI(r.E,"V/m"),
+    U: fmtSI(r.U,"J"),
+    k: fmt(input.k)
+  });
+  $("tablePanel").classList.add("show");
+  $("tableBtn").classList.add("active");
+  $("tableBtn").textContent = "Tabla ON";
+  renderRows();
+}
+
+function renderRows(){
+  $("tableRows").innerHTML = state.rows.map((r,i) =>
+    `<tr><td>${i+1}</td><td>${r.sc}</td><td>${r.estado}</td><td>${r.C}</td><td>${r.Q}</td><td>${r.V}</td><td>${r.E}</td><td>${r.U}</td><td>${r.k}</td></tr>`
+  ).join("");
+}
+
+function showPrediction(){
+  const input = readInputs();
+  alert(input.battery
+    ? "Predicción: conectado a batería ⇒ V fijo. Si C aumenta, Q y U aumentan. Si C baja, Q y U bajan."
+    : "Predicción: desconectado ⇒ Q fijo. Si C aumenta, V y U bajan. Si C baja, V y U suben.");
+}
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = Math.max(900, Math.floor(rect.width*ratio));
+  canvas.height = Math.max(600, Math.floor(rect.height*ratio));
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+}
+
+function batteryGeom(h){
+  const x = 40, y = h*0.33, bw = 66, bh = 144;
+  return {
+    x, y, bw, bh,
+    topPole: {x:x+bw/2, y:y-18},
+    botPole: {x:x+bw/2, y:y+bh+18},
+    knobTop: y+18,
+    knobBot: y+bh-18
+  };
+}
+
+function ensureUi(w,h){
+  const s = Number(($("uiScaleInput") || {value:1}).value) || 1;
+  state.ui.scale = s;
+  if(state.ui.bars.x === null){ state.ui.bars.x = 16; state.ui.bars.y = 16; }
+  if(state.ui.stateBox.x === null){ state.ui.stateBox.x = w - (245*s) - 18; state.ui.stateBox.y = 16; }
+  if(state.ui.volt.x === null){ state.ui.volt.x = w - (190*s) - 26; state.ui.volt.y = h - (70*s) - 20; }
+  if(state.ui.kappaBox.x === null){ state.ui.kappaBox.x = w - (220*s) - 32; state.ui.kappaBox.y = h - (88*s) - 110; }
+  if(state.ui.materialsBox.x === null){ state.ui.materialsBox.x = w - (215*s) - 34; state.ui.materialsBox.y = h - (122*s) - 110; }
+  if(state.ui.sceneInfo.x === null){ state.ui.sceneInfo.x = 28; state.ui.sceneInfo.y = h - (170*s) - 26; }
+  const limits = [
+    [state.ui.bars, 360*s, 126*s],
+    [state.ui.stateBox, 245*s, 84*s],
+    [state.ui.volt, 190*s, 70*s],
+    [state.ui.kappaBox, 220*s, 88*s],
+    [state.ui.materialsBox, 215*s, 122*s],
+    [state.ui.sceneInfo, 340*s, 160*s]
+  ];
+  limits.forEach(([obj,bw,bh]) => {
+    obj.x = clamp(obj.x, 8, Math.max(8, w-bw-8));
+    obj.y = clamp(obj.y, 8, Math.max(8, h-bh-8));
+  });
+}
+
+function drawScene(input, result, sc){
+  resizeCanvas();
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  ctx.clearRect(0,0,w,h);
+  drawBackground(w,h);
+
+  state.hotspots = {};
+  if(sc.draw === "cylinder") drawCylinder(input,result,w,h);
+  else if(sc.draw === "sphereOriginal") drawSphereOriginal(input,result,w,h);
+  else if(sc.draw === "cylinderOriginal") drawCylinderOriginal(input,result,w,h);
+  else if(sc.draw === "forceOriginal") drawForceOriginal(input,result,w,h);
+  else if(sc.draw === "sphereRef") drawReferenceFigure(input,result,w,h,"imgSphereRef","Condensador esférico", [
+    `C = ${fmtSI(result.C,"F")}`, `Q = ${fmtSI(result.Q,"C")}`, `E(r medio) = ${fmtSI(result.E,"V/m")}`, `U = ${fmtSI(result.U,"J")}`
+  ]);
+  else if(sc.draw === "cylinderStdRef") drawReferenceFigure(input,result,w,h,"imgCylinderRef","Condensador cilíndrico", [
+    `C = ${fmtSI(result.C,"F")}`, `Q = ${fmtSI(result.Q,"C")}`, `ln(R₂/R₁) = ${fmt(result.ln)}`, `U = ${fmtSI(result.U,"J")}`
+  ]);
+  else if(sc.draw === "forceRef") drawReferenceFigure(input,result,w,h,"imgForceRef","Fuerza sobre un dieléctrico", [
+    `C = ${fmtSI(result.C,"F")}`, `Q = ${fmtSI(result.Q,"C")}`, `F = ${fmtSI(result.force,"N")}`, input.battery ? 'Caso: V constante' : 'Caso: Q constante'
+  ]);
+  else if(sc.draw === "circuit2530") drawCircuit2530(input,result,w,h);
+  else if(sc.draw === "circuit2531") drawCircuit2531(input,result,w,h);
+  else if(sc.draw === "circuit2532") drawCircuit2532(input,result,w,h);
+  else if(sc.draw === "circuit2555") drawCircuit2555(input,result,w,h);
+  else if(sc.draw === "network") drawNetwork(input,result,w,h);
+  else drawParallelScene(input,result,sc.draw,w,h);
+
+  if(state.showBars) drawBars(result,w,h);
+}
+
+
+
+function drawSceneInfoPanel(title, lines, bw=340, bh=160){
+  if(!state.showSceneInfoBox) return;
+  ensureUi(canvas.clientWidth, canvas.clientHeight);
+  const s = state.ui.scale || 1, x = state.ui.sceneInfo.x, y = state.ui.sceneInfo.y;
+  const W = bw*s, H = bh*s;
+  roundRect(x,y,W,H,12,"rgba(255,255,255,.95)","#263238",1.3);
+  ctx.fillStyle="#111";
+  ctx.font=`bold ${Math.round(18*s)}px sans-serif`;
+  ctx.fillText(title, x+14*s, y+26*s);
+  ctx.font=`${Math.round(14*s)}px sans-serif`;
+  lines.forEach((t,i)=>ctx.fillText(t, x+14*s, y+54*s+i*20*s));
+  drawPanelButtons(x,y,W,H,"sceneInfoPanel","closeSceneInfo","resizeSceneInfo");
+}
+
+function drawSphereOriginal(input,result,w,h){
+  drawStateBox(input,result,w,h);
+  const cx = w*0.48, cy = h*0.42;
+  const r2 = clamp(input.R2*100*24, 95, Math.min(w,h)*0.26);
+  const r1 = clamp((input.R1/input.R2)*r2, 28, r2-24);
+  const rm = r1 + clamp(input.f,0,1)*(r2-r1);
+  ctx.save();
+
+  ctx.fillStyle = "rgba(99,102,241,.10)";
+  ctx.strokeStyle = "rgba(99,102,241,.65)";
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(cx,cy,r2,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+  if(state.showDielectric && input.f > 0.01){
+    ctx.fillStyle = "rgba(70,190,120,.18)";
+    ctx.strokeStyle = "rgba(30,130,80,.75)";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx,cy,rm,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillText(`κ=${fmt(input.k)}`, cx-rm-8, cy-rm-14);
+    roundRect(cx-rm-52, cy-12, 28, 24, 6, "#2fbf71", "#14532d", 1.5);
+    ctx.fillStyle="#fff"; ctx.font="bold 13px sans-serif"; ctx.fillText("f", cx-rm-43, cy+5);
+    state.hotspots.sphereDiel = {x:cx-rm-56, y:cy-rm, w:2*rm+56, h:2*rm, cx, cy, r1, r2};
+  } else {
+    state.hotspots.sphereDiel = null;
+  }
+
+  ctx.fillStyle = "rgba(255,255,255,.94)";
+  ctx.strokeStyle = "#334155";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(cx,cy,r1,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+  ctx.setLineDash([8,6]);
+  ctx.strokeStyle = "#d97706";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx,cy,(r1+r2)/2,0,Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  for(let i=0;i<18;i++){
+    const a=i*Math.PI*2/18;
+    const x1=cx+Math.cos(a)*(r1+8), y1=cy+Math.sin(a)*(r1+8);
+    const x2=cx+Math.cos(a)*(r2-26), y2=cy+Math.sin(a)*(r2-26);
+    ctx.strokeStyle="#c0392b"; ctx.fillStyle="#c0392b"; ctx.lineWidth=1.35;
+    arrow(x1,y1,x2,y2);
+  }
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 18px serif";
+  ctx.fillText("+Q", cx-18, cy+8);
+  ctx.fillText("−Q", cx+r2+18, cy+8);
+  for(let i=0;i<10;i++){ const a=i*Math.PI*2/10; ctx.fillText("+", cx+Math.cos(a)*(r1+9)-4, cy+Math.sin(a)*(r1+9)+4); }
+  for(let i=0;i<18;i++){ const a=i*Math.PI*2/18; ctx.fillText("–", cx+Math.cos(a)*(r2-8)-4, cy+Math.sin(a)*(r2-8)+4); }
+
+  ctx.strokeStyle = "#111"; ctx.fillStyle = "#111"; ctx.lineWidth = 2;
+  line(cx,cy,cx+r1,cy); ctx.fillText("R₁", cx+r1/2-8, cy-10);
+  line(cx,cy,cx+r2*Math.cos(-0.45),cy+r2*Math.sin(-0.45)); ctx.fillText("R₂", cx+r2*0.70, cy-r2*0.34);
+  roundRect(cx+r1-12, cy-12, 24,24,6,"#4aa3ff","#174e87",1.5);
+  roundRect(cx+r2-12, cy-12, 24,24,6,"#4aa3ff","#174e87",1.5);
+  ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.fillText("R₁", cx+r1-8, cy+4); ctx.fillText("R₂", cx+r2-8, cy+4);
+  state.hotspots.sphereR1 = {x:cx+r1-14, y:cy-14, w:28, h:28, cx, cy, scale:24, maxR2:input.R2*100};
+  state.hotspots.sphereR2 = {x:cx+r2-14, y:cy-14, w:28, h:28, cx, cy, scale:24};
+
+  ctx.restore();
+  drawSceneInfoPanel("Valores", [
+    `R₁ = ${fmt(input.R1*100)} cm`,
+    `R₂ = ${fmt(input.R2*100)} cm`,
+    `C = ${fmtSI(result.C,"F")}`,
+    `Q = ${fmtSI(result.Q,"C")}`,
+    `E(r medio) = ${fmtSI(result.E,"V/m")}`,
+    `U = ${fmtSI(result.U,"J")}`,
+    `f = fracción radial ocupada por el dieléctrico`,
+    `Arrastra la manija verde f para mover el dieléctrico`
+  ], 380, 202);
+  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+  if(state.showDielectric) drawKappaControl(input,w,h);
+}
+
+function drawCylinderOriginal(input,result,w,h){
+  drawStateBox(input,result,w,h);
+  const x = w*0.20, y = h*0.43, L = w*0.52;
+  const R = clamp(input.R2*100*18, 90, Math.min(135,h*0.18));
+  const r = clamp((input.R1/input.R2)*R, 28, R-22);
+  ctx.save();
+
+  ctx.fillStyle="rgba(99,102,241,.12)";
+  ctx.strokeStyle="rgba(99,102,241,.55)";
+  ctx.lineWidth=2.5;
+  roundRect(x,y-R,L,2*R,22,"rgba(99,102,241,.10)","rgba(99,102,241,.35)",2);
+  ctx.beginPath(); ctx.ellipse(x,y,R*0.45,R,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(x+L,y,R*0.45,R,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+  roundRect(x+10,y-r,L-20,2*r,18,"rgba(255,255,255,.90)","#94a3b8",1.8);
+  ctx.beginPath(); ctx.ellipse(x+10,y,r*0.45,r,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(x+L-10,y,r*0.45,r,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+  const cxL = x+10;
+  ctx.font="bold 16px sans-serif";
+  for(let a=0; a<Math.PI*2; a+=Math.PI/8){
+    const sx = cxL + 0.45*(r+5)*Math.cos(a);
+    const sy = y + (r+5)*Math.sin(a);
+    const ex = cxL + 0.45*(R-15)*Math.cos(a);
+    const ey = y + (R-15)*Math.sin(a);
+    ctx.strokeStyle="#c0392b"; ctx.fillStyle="#c0392b"; ctx.lineWidth=2;
+    arrow(sx,sy,ex,ey);
+  }
+  ctx.fillStyle="#111";
+  for(let a=0; a<Math.PI*2; a+=Math.PI/5){
+    ctx.fillText("+", cxL+0.45*r*Math.cos(a)-4, y+r*Math.sin(a)+4);
+    ctx.fillText("−", cxL+0.45*(R-8)*Math.cos(a)-4, y+(R-8)*Math.sin(a)+4);
+  }
+
+  ctx.strokeStyle="#111"; ctx.fillStyle="#111"; ctx.lineWidth=2;
+  line(x+L-40,y,x+L-40,y-r); ctx.fillText("R₁", x+L-72, y-r-10);
+  line(x+L-10,y,x+L-10,y-R+6); ctx.fillText("R₂", x+L-42, y-R-8);
+  roundRect(x+L-52, y-r-12, 24,24,6,"#4aa3ff","#174e87",1.5);
+  roundRect(x+L-22, y-R-12, 24,24,6,"#4aa3ff","#174e87",1.5);
+  ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.fillText("R₁", x+L-48, y-r+4); ctx.fillText("R₂", x+L-18, y-R+4);
+  state.hotspots.cylR1 = {x:x+L-54, y:y-r-14, w:28, h:28, cy:y, scale:18, R2cm:input.R2*100};
+  state.hotspots.cylR2 = {x:x+L-24, y:y-R-14, w:28, h:28, cy:y, scale:18};
+
+  ctx.restore();
+  drawSceneInfoPanel("Valores", [
+    `L = ${fmt(input.L*100)} cm`,
+    `R₁ = ${fmt(input.R1*100)} cm`,
+    `R₂ = ${fmt(input.R2*100)} cm`,
+    `ln(R₂/R₁) = ${fmt(result.ln)}`,
+    `C = ${fmtSI(result.C,"F")}`,
+    `Q = ${fmtSI(result.Q,"C")}`,
+    `U = ${fmtSI(result.U,"J")}`,
+    `Las flechas rojas muestran E desde + hacia −`
+  ], 380, 202);
+  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+}
+
+function drawForceOriginal(input,result,w,h){
+  ctx.save();
+  const b = batteryGeom(h);
+  const px = Math.max(w*0.42, b.x + b.bw + 190);
+  const py = h*0.31;
+  const pw = Math.min(w*0.28, 380);
+  const gap = h*0.24;
+  const Lmm = 20;
+  const xmm = clamp(input.f,0,1)*Lmm;
+
+  // Batería con el mismo diseño del escenario 1
+  drawBattery(input,w,h);
+
+  // Conexiones visibles desde la batería hasta las placas del capacitor
+  const topNode = {x:px, y:py};
+  const botNode = {x:px, y:py+gap};
+  const swX = b.botPole.x + 54;
+  ctx.strokeStyle = input.battery ? "#58717a" : "#939393";
+  ctx.lineWidth = 4.2;
+  ctx.lineJoin = "round";
+
+  line(b.topPole.x, b.topPole.y, b.topPole.x, topNode.y);
+  line(b.topPole.x, topNode.y, topNode.x, topNode.y);
+  line(b.botPole.x, b.botPole.y, b.botPole.x, botNode.y);
+  line(b.botPole.x, botNode.y, swX-10, botNode.y);
+  if(input.battery){
+    line(swX-10, botNode.y, swX+10, botNode.y);
+    line(swX+10, botNode.y, botNode.x, botNode.y);
+  } else {
+    line(swX+12, botNode.y, botNode.x, botNode.y);
+    ctx.strokeStyle = "#111";
+    line(swX-10, botNode.y, swX+8, botNode.y-14);
+    ctx.strokeStyle = "#939393";
+  }
+  ctx.strokeStyle = "#111";
+  ctx.lineWidth = 3;
+  line(swX-10, botNode.y+12, swX+10, botNode.y+12);
+  ctx.fillStyle = input.battery ? "#1b7f45" : "#ad2f2f";
+  ctx.font = "bold 12px sans-serif";
+  ctx.fillText(input.battery ? "switch ON" : "switch OFF", swX-22, botNode.y-20);
+  state.hotspots.switch = {x:swX-20, y:botNode.y-22, w:52, h:36};
+
+  // Placas del capacitor más a la derecha y con igual largo útil que el dieléctrico
+  ctx.strokeStyle="#e11d48"; ctx.lineWidth=6; line(px,py,px+pw,py);
+  ctx.strokeStyle="#2563eb"; line(px,py+gap,px+pw,py+gap);
+
+  // Campo eléctrico entre placas
+  ctx.strokeStyle="#475569"; ctx.fillStyle="#475569"; ctx.lineWidth=1.8;
+  for(let i=0;i<9;i++){
+    const xx=px+18+i*(pw-36)/8;
+    arrow(xx,py+14,xx,py+gap-14);
+  }
+
+  // Dieléctrico del mismo largo que la región del capacitor
+  const blockW = pw;
+  const insert = clamp(input.f,0,1)*pw;
+  const xRight = px + insert;
+  const xLeft = xRight - blockW;
+  roundRect(xLeft, py+10, blockW, gap-20, 12, "rgba(34,197,94,.18)", "rgba(22,163,74,.78)", 2.2);
+
+  // Polarización del dieléctrico
+  ctx.fillStyle="#dc2626"; ctx.font="bold 16px sans-serif";
+  for(let i=0;i<4;i++) ctx.fillText("−", xLeft+18+i*(blockW-36)/3, py+28);
+  ctx.fillStyle="#2563eb";
+  for(let i=0;i<4;i++) ctx.fillText("+", xLeft+18+i*(blockW-36)/3, py+gap-22);
+  ctx.fillStyle="#14532d"; ctx.font="bold 14px sans-serif";
+  ctx.fillText(`κ = ${fmt(input.k)}`, xLeft+16, py+46);
+
+  // Manija de arrastre
+  roundRect(xRight-16, py+gap/2-20, 32, 40, 10, "#59c36a", "#22683d", 2);
+  ctx.fillStyle="#fff"; ctx.font="bold 18px sans-serif"; ctx.fillText("f", xRight-6, py+gap/2+6);
+  ctx.fillStyle="#14532d"; ctx.font="bold 12px sans-serif";
+  ctx.fillText("arrastra el dieléctrico o la manija f", px-6, py+gap+22);
+
+  // Mostrar la longitud insertada x
+  ctx.strokeStyle="#0f172a"; ctx.fillStyle="#0f172a"; ctx.lineWidth=1.8;
+  const xArrowStart = px, xArrowEnd = Math.max(px+8, xRight);
+  arrow(xArrowStart, py+gap+42, xArrowEnd, py+gap+42);
+  if(xRight > px+10) arrow(xArrowEnd, py+gap+42, xArrowStart, py+gap+42);
+  ctx.font="bold 13px sans-serif";
+  ctx.fillText(`x = ${fmt(xmm)} mm`, (xArrowStart+xArrowEnd)/2-24, py+gap+62);
+  ctx.strokeStyle="#64748b"; ctx.setLineDash([5,5]);
+  line(xRight, py+6, xRight, py+gap-6);
+  ctx.setLineDash([]);
+
+  // Fuerzas
+  const fx0 = Math.max(px + insert + 22, xLeft + blockW + 16);
+  ctx.strokeStyle="#111827"; ctx.fillStyle="#111827"; ctx.lineWidth=4;
+  arrow(fx0, py+gap/2, fx0+96, py+gap/2);
+  ctx.fillText("F_E hacia adentro", fx0+8, py+gap/2-12);
+  ctx.strokeStyle="#7c3aed"; ctx.fillStyle="#7c3aed";
+  arrow(fx0+96, py+gap/2+34, fx0, py+gap/2+34);
+  ctx.fillText("F_ext hacia afuera", fx0-2, py+gap/2+56);
+
+  state.hotspots.forceDiel = {x:xLeft-8, y:py+8, w:blockW+26, h:gap-16, x0:px, w0:pw};
+
+  ctx.restore();
+  drawSceneInfoPanel("Valores calculados", [
+    input.battery ? "Caso: V constante (batería conectada)" : "Caso: Q constante (capacitor aislado)",
+    `f = ${fmt(input.f)}   x = ${fmt(xmm)} mm`,
+    `κ = ${fmt(input.k)}`,
+    `C = ${fmtSI(result.C,"F")}`,
+    `Q = ${fmtSI(result.Q,"C")}`,
+    `U = ${fmtSI(result.U,"J")}`,
+    `F_E = ${fmtSI(result.force,"N")} hacia adentro`,
+    `Para sacar: F_ext debe ir hacia afuera`
+  ], 500, 236);
+  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+  if(state.showDielectric) drawKappaControl(input,w,h);
+}
+
+function drawReferenceFigure(input,result,w,h,imgId,title,lines){
+  drawStateBox(input,result,w,h);
+  const img = $(imgId);
+  const pad = 26, boxW = w - 2*pad, boxH = h - 2*pad;
+  roundRect(pad,pad,boxW,boxH,12,"rgba(255,255,255,.92)","#b7c1cc",1.4);
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 22px sans-serif";
+  ctx.fillText(title, pad+18, pad+34);
+  ctx.font = "13px sans-serif";
+  ctx.fillStyle = "#4a5560";
+  ctx.fillText("Figura de referencia exacta añadida por el Prof. Wong", pad+18, pad+56);
+
+  const infoW = 250;
+  const imgX = pad+14, imgY = pad+72, imgW = boxW - infoW - 38, imgH = boxH - 90;
+  if(img && img.complete && img.naturalWidth){
+    const s = Math.min(imgW/img.naturalWidth, imgH/img.naturalHeight);
+    const dw = img.naturalWidth*s, dh = img.naturalHeight*s;
+    ctx.drawImage(img, imgX + (imgW-dw)/2, imgY + (imgH-dh)/2, dw, dh);
+  } else {
+    ctx.fillStyle="#e9edf2"; roundRect(imgX,imgY,imgW,imgH,8,"#eef2f6","#ccd5df",1);
+    ctx.fillStyle="#708090"; ctx.fillText("Cargando figura…", imgX+20, imgY+30);
+  }
+  const bx = w - infoW - 32, by = 110, bh = Math.max(170, 36 + 30*lines.length);
+  roundRect(bx,by,infoW,bh,12,"rgba(255,255,255,.96)","#222",1.3);
+  ctx.fillStyle="#111"; ctx.font="bold 18px sans-serif"; ctx.fillText("Valores calculados", bx+14, by+24);
+  ctx.font="14px sans-serif";
+  lines.forEach((t,i)=>ctx.fillText(t,bx+14, by+54 + i*24));
+}
+
+function drawBackground(w,h){
+  ctx.fillStyle = css("--canvas");
+  ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = css("--grid");
+  ctx.lineWidth = 1;
+  for(let x=0; x<w; x+=50) line(x,0,x,h);
+  for(let y=0; y<h; y+=50) line(0,y,w,y);
+}
+
+function geom(input,w,h){
+  const cx = w*0.53;
+  const cy = h*0.55;
+  const plateW = clamp(180 + 0.30*input.Amm2, 210, 450);
+  const gap = clamp(30 + 7.5*input.dmm, 48, 200);
+  return {
+    cx, cy, plateW, gap,
+    left: cx-plateW/2,
+    right: cx+plateW/2,
+    top: cy-gap/2,
+    bot: cy+gap/2
+  };
+}
+
+function drawParallelScene(input,result,mode,w,h){
+  const g = geom(input,w,h);
+  drawBattery(input,w,h);
+  drawWires(input,g,w,h);
+  drawStateBox(input,result,w,h);
+
+  if(mode === "angled"){
+    drawAngled(input,result,g,w,h);
+    return;
+  }
+
+  drawPlate(g.left,g.top,g.plateW,"top");
+  drawPlate(g.left,g.bot,g.plateW,"bottom");
+
+  if(state.showDielectric){
+    if(mode === "dielectricFull") drawDielectric(g,input,"full");
+    if(mode === "dielectricArea") drawDielectric(g,input,"area");
+    if(mode === "dielectricThickness") drawDielectric(g,input,"thickness");
+    if(mode === "threeMaterials") drawThreeMaterials(g,input);
+  }
+  if(mode === "conductor") drawConductor(g,input);
+
+  if(state.showField) drawField(g,mode,input);
+  if(state.showCharges) drawCharges(g,mode,input);
+  if(state.showScale) drawScale(g,input,mode);
+  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+  if(mode === "threeMaterials") drawMaterialsControl(input,w,h);
+  else if(!["conductor"].includes(mode)) drawKappaControl(input,w,h);
+  if(state.showHandles) drawHandles(g,input,mode);
+}
+
+function drawBattery(input,w,h){
+  const b = batteryGeom(h);
+  const connected = input.battery;
+  const grad = ctx.createLinearGradient(b.x,b.y,b.x+b.bw,b.y+b.bh);
+  if(connected){
+    grad.addColorStop(0,"#cfe9f6");
+    grad.addColorStop(0.28,"#e7f4f9");
+    grad.addColorStop(0.31,"#a6b8c6");
+    grad.addColorStop(1,"#6f8796");
+  } else {
+    grad.addColorStop(0,"#dddfe3");
+    grad.addColorStop(0.34,"#f3f4f6");
+    grad.addColorStop(0.38,"#b1b5ba");
+    grad.addColorStop(1,"#7d8288");
+  }
+  roundRect(b.x,b.y,b.bw,b.bh,20,grad,"#42515b",1.8);
+  roundRect(b.x+16,b.y-10,b.bw-32,12,4,"#d9e5ea","#60717c",1);
+  roundRect(b.x+16,b.y+b.bh-2,b.bw-32,12,4,"#d9e5ea","#60717c",1);
+  ctx.strokeStyle = "#8aa";
+  ctx.lineWidth = 5;
+  line(b.topPole.x,b.y-22,b.topPole.x,b.y);
+  line(b.botPole.x,b.y+b.bh,b.botPole.x,b.y+b.bh+22);
+  ctx.fillStyle = connected ? "#244051" : "#3d4348";
+  ctx.font = "bold 14px sans-serif";
+  ctx.fillText(`${fmt(input.V)} V`, b.x+14, b.y+24);
+  ctx.font = "12px sans-serif";
+  ctx.fillText("+", b.x+14, b.y+46);
+  ctx.fillText("0", b.x+15, b.y+74);
+  ctx.fillText("−", b.x+15, b.y+b.bh-18);
+  const t = (input.V-0.5)/(12-0.5);
+  const knobY = b.knobBot - t*(b.knobBot - b.knobTop);
+  ctx.strokeStyle = "#8f9aa3"; ctx.lineWidth = 3;
+  line(b.x+b.bw-12, b.knobTop, b.x+b.bw-12, b.knobBot);
+  const knobGrad = ctx.createLinearGradient(b.x+b.bw-22,knobY-10,b.x+b.bw-6,knobY+10);
+  knobGrad.addColorStop(0,"#ef4444");
+  knobGrad.addColorStop(1,"#fb923c");
+  roundRect(b.x+b.bw-18, knobY-10, 12, 20, 6, knobGrad, "#7c2d12", 1);
+  ctx.beginPath(); ctx.arc(b.x+b.bw-12, knobY, 2.5, 0, Math.PI*2); ctx.fillStyle="#fff7ed"; ctx.fill();
+  state.hotspots.battery = {x:b.x+b.bw-22, y:knobY-14, w:20, h:28, yTop:b.knobTop, yBot:b.knobBot};
+}
+
+function drawWires(input,g,w,h){
+  const b = batteryGeom(h);
+  const topNode = {x:g.cx, y:g.top-30};
+  const botNode = {x:g.cx, y:g.bot+44};
+  const swX = b.botPole.x + 56;
+  ctx.save();
+  ctx.strokeStyle = input.battery ? "#58717a" : "#939393";
+  ctx.lineWidth = 4.2;
+  ctx.lineJoin = "round";
+
+  line(topNode.x, topNode.y, topNode.x, g.top);
+  line(botNode.x, botNode.y, botNode.x, g.bot+14);
+  ctx.fillStyle = "#111";
+  ctx.beginPath(); ctx.arc(topNode.x, topNode.y, 8, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(botNode.x, botNode.y, 8, 0, Math.PI*2); ctx.fill();
+
+  line(b.topPole.x, b.topPole.y, b.topPole.x, topNode.y);
+  line(b.topPole.x, topNode.y, topNode.x, topNode.y);
+  line(b.botPole.x, b.botPole.y, b.botPole.x, botNode.y);
+  line(b.botPole.x, botNode.y, swX-10, botNode.y);
+  if(input.battery){
+    line(swX-10, botNode.y, swX+10, botNode.y);
+    line(swX+10, botNode.y, botNode.x, botNode.y);
+  } else {
+    line(swX+12, botNode.y, botNode.x, botNode.y);
+    ctx.strokeStyle = "#111";
+    line(swX-10, botNode.y, swX+8, botNode.y-14);
+  }
+  ctx.strokeStyle = "#111";
+  ctx.lineWidth = 3;
+  line(swX-10, botNode.y+12, swX+10, botNode.y+12);
+  ctx.fillStyle = input.battery ? "#1b7f45" : "#ad2f2f";
+  ctx.font = "bold 12px sans-serif";
+  ctx.fillText(input.battery ? "switch ON" : "switch OFF", swX-22, botNode.y-20);
+  state.hotspots.switch = {x:swX-20, y:botNode.y-22, w:52, h:36};
+
+  if(input.battery && state.flow && state.flow.dir !== "none"){
+    ctx.strokeStyle = state.flow.dir === "batteryToCap" ? "#d35400" : "#8e44ad";
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.lineWidth = 3.5;
+    if(state.flow.dir === "batteryToCap"){
+      arrow(b.topPole.x + 34, topNode.y - 12, topNode.x - 34, topNode.y - 12);
+      ctx.font = "bold 12px sans-serif";
+      ctx.fillText("carga: batería → capacitor", Math.min(b.topPole.x + 42, topNode.x - 180), topNode.y - 18);
+    } else {
+      arrow(topNode.x - 34, topNode.y - 12, b.topPole.x + 34, topNode.y - 12);
+      ctx.font = "bold 12px sans-serif";
+      ctx.fillText("carga: capacitor → batería", Math.min(b.topPole.x + 42, topNode.x - 190), topNode.y - 18);
+    }
+  }
+  ctx.restore();
+}
+
+function drawStateBox(input,result,w,h){
+  if(!state.showStateBox) return;
+  ensureUi(w,h);
+  const s = state.ui.scale, x = state.ui.stateBox.x, y = state.ui.stateBox.y, bw = 245*s, bh = 86*s;
+  roundRect(x,y,bw,bh,10,"rgba(255,255,255,.92)","#222",1.2);
+  ctx.fillStyle = "#111";
+  ctx.font = `bold ${Math.round(12*s)}px sans-serif`;
+  ctx.fillText("Estado (arrastra)", x+10*s, y+18*s);
+  ctx.font = `bold ${Math.round(15*s)}px sans-serif`;
+  ctx.fillText(input.battery ? "Batería conectada" : "Capacitor aislado", x+10*s, y+40*s);
+  ctx.font = `${Math.round(13*s)}px sans-serif`;
+  ctx.fillText(input.battery ? "Fijo: V" : "Fijo: Q", x+10*s, y+61*s);
+  const extra = input.scenario === "conductor" ? `a=${fmt(input.a_mm)} mm` : `κ=${fmt(input.k)}  f=${fmt(input.f)}`;
+  ctx.fillText(extra, x+118*s, y+61*s);
+  drawPanelButtons(x,y,bw,bh,"stateBox","closeState","resizeState");
+}
+
+function drawPlate(input,g,w,h){
+  ctx.save();
+  ctx.strokeStyle = input.battery ? "#4c6f77" : "#999";
+  ctx.lineWidth = 5;
+  ctx.lineJoin = "round";
+  const x0 = 94;
+  const yTopBat = h*0.20 - 44;
+  const yBotBat = h*0.20 + 244;
+
+  line(x0,yTopBat,x0,g.top+6);
+  line(x0,g.top+6,g.left,g.top+6);
+
+  if(input.battery){
+    line(x0,yBotBat,x0,g.bot+6);
+    line(x0,g.bot+6,g.left,g.bot+6);
+  } else {
+    ctx.setLineDash([10,8]);
+    line(x0,yBotBat,x0,g.bot+6);
+    line(x0,g.bot+6,g.left,g.bot+6);
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#ad2f2f";
+    ctx.font = "bold 13px sans-serif";
+    ctx.fillText("circuito abierto", x0+10, g.bot+30);
+  }
+  ctx.restore();
+}
+
+function drawStateBox(input,result,w,h){
+  if(!state.showStateBox) return;
+  ensureUi(w,h);
+  const s = state.ui.scale, x = state.ui.stateBox.x, y = state.ui.stateBox.y, bw = 245*s, bh = 86*s;
+  roundRect(x,y,bw,bh,10,"rgba(255,255,255,.92)","#222",1.2);
+  ctx.fillStyle = "#111";
+  ctx.font = `bold ${Math.round(12*s)}px sans-serif`;
+  ctx.fillText("Estado (arrastra)", x+10*s, y+18*s);
+  ctx.font = `bold ${Math.round(15*s)}px sans-serif`;
+  ctx.fillText(input.battery ? "Batería conectada" : "Capacitor aislado", x+10*s, y+40*s);
+  ctx.font = `${Math.round(13*s)}px sans-serif`;
+  ctx.fillText(input.battery ? "Fijo: V" : "Fijo: Q", x+10*s, y+61*s);
+  const extra = input.scenario === "conductor" ? `a=${fmt(input.a_mm)} mm` : `κ=${fmt(input.k)}  f=${fmt(input.f)}`;
+  ctx.fillText(extra, x+118*s, y+61*s);
+  drawPanelButtons(x,y,bw,bh,"stateBox","closeState","resizeState");
+}
+
+function drawPlate(x,y,w,kind){
+  const grad = ctx.createLinearGradient(x,y,x,y+16);
+  grad.addColorStop(0, kind === "top" ? "#fff8ef" : "#eaf1f7");
+  grad.addColorStop(1, "#b7c0c4");
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = "#1f1f1f";
+  ctx.lineWidth = 2;
+  ctx.fillRect(x,y,w,14);
+  ctx.strokeRect(x,y,w,14);
+}
+
+function drawDielectric(g,input,type){
+  const x = g.left+8, y = g.top+16, w = g.plateW-16, h = g.gap-18;
+  ctx.fillStyle = css("--dielectric");
+  ctx.strokeStyle = css("--dielectric-line");
+  ctx.lineWidth = 2;
+
+  if(type === "full"){
+    const fillW = w;
+    ctx.fillRect(x,y,fillW,h);
+    ctx.strokeRect(x,y,fillW,h);
+    labelDielectric(x+fillW/2-22,y+h/2+6,input.k);
+    state.hotspots.diel = null;
+  }
+  if(type === "area"){
+    const fillW = Math.max(10, w * input.f);
+    ctx.fillRect(x,y,fillW,h);
+    ctx.strokeRect(x,y,fillW,h);
+    labelDielectric(x+Math.max(12,fillW/2-22),y+h/2+6,input.k);
+    roundRect(x+8,y+8,132,22,6,"rgba(255,255,255,.82)","#2d6a4f",1);
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 12px sans-serif";
+    ctx.fillText("dieléctrico (arrastra)", x+16, y+23);
+    state.hotspots.diel = {x:x, y:y, w:Math.max(fillW,26), h:h};
+  }
+  if(type === "thickness"){
+    const fillH = Math.max(10, h * input.f);
+    ctx.fillRect(x,y,w,fillH);
+    ctx.strokeRect(x,y,w,fillH);
+    labelDielectric(x+w/2-22,y+Math.max(18,fillH/2+6),input.k);
+    roundRect(x+8,y+8,132,22,6,"rgba(255,255,255,.82)","#2d6a4f",1);
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 12px sans-serif";
+    ctx.fillText("dieléctrico (arrastra)", x+16, y+23);
+    state.hotspots.diel = {x:x, y:y, w:w, h:Math.max(fillH,26)};
+  }
+}
+
+function labelDielectric(x,y,k){
+  ctx.fillStyle = "#06451f";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText(`κ=${fmt(k)}`, x, y);
+}
+
+function drawThreeMaterials(g,input){
+  const x=g.left+8, y=g.top+16, w=g.plateW-16, h=g.gap-18, half=w/2;
+  coloredRect(x,y,half,h,"rgba(255,200,160,.60)",`κ₁=${fmt(input.k1)}`);
+  coloredRect(x+half,y,half,h/2,"rgba(255,245,150,.72)",`κ₂=${fmt(input.k2)}`);
+  coloredRect(x+half,y+h/2,half,h/2,"rgba(180,235,240,.72)",`κ₃=${fmt(input.k3)}`);
+}
+
+function coloredRect(x,y,w,h,color,text){
+  ctx.fillStyle = color;
+  ctx.strokeStyle = "#555";
+  ctx.fillRect(x,y,w,h);
+  ctx.strokeRect(x,y,w,h);
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 15px sans-serif";
+  ctx.fillText(text,x+8,y+h/2+5);
+}
+
+function drawConductor(g,input){
+  const maxH = Math.max(12,g.gap-12);
+  const hh = clamp(input.a_mm*7, 8, maxH);
+  const maxOffset = Math.max(0,(g.gap-hh)/2);
+  state.conductorOffset = clamp(state.conductorOffset||0,-maxOffset,maxOffset);
+  const cy = g.cy + state.conductorOffset;
+  const x = g.left, w = g.plateW; // mismo largo visual de las placas
+  ctx.fillStyle = css("--conductor");
+  ctx.strokeStyle = "#4b5563";
+  ctx.lineWidth = 2.2;
+  ctx.fillRect(x,cy-hh/2,w,hh);
+  ctx.strokeRect(x,cy-hh/2,w,hh);
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 15px sans-serif";
+  ctx.fillText(`metal a = ${fmt(input.a_mm)} mm`, x+16, cy+5);
+
+  const pixPerMm = 7.5;
+  const dSup = Math.max(0, (cy-hh/2) - (g.top+14));
+  const dInf = Math.max(0, g.bot - (cy+hh/2));
+  ctx.font = "bold 14px sans-serif";
+  ctx.fillText(`d_sup = ${fmt(dSup/pixPerMm,1)} mm`, g.left+18, g.top+38);
+  ctx.fillText(`d_inf = ${fmt(dInf/pixPerMm,1)} mm`, g.left+18, g.bot-18);
+
+  // drag directo sobre el metal
+  state.hotspots.conductor = {x:x, y:cy-hh/2, w:w, h:hh, maxOffset:maxOffset};
+  // controles separados y más bajos
+  const bx = x+w+18, by = g.bot+18;
+  roundRect(bx, by, 86, 32, 8, "#fef3c7", "#92400e", 1.6);
+  ctx.fillStyle="#92400e"; ctx.font="bold 12px sans-serif"; ctx.fillText("mover metal", bx+10, by+20);
+  roundRect(bx, by+40, 86, 32, 8, "#fde68a", "#92400e", 1.6);
+  ctx.fillStyle="#92400e"; ctx.font="bold 12px sans-serif"; ctx.fillText("a espesor", bx+14, by+60);
+  state.hotspots.metalA = {x:bx, y:by+40, w:86, h:32, cy:cy, maxH:maxH};
+  roundRect(bx, by+80, 86, 32, 8, "#3fbf67", "#14592b", 1.6);
+  ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.fillText("centrar", bx+24, by+100);
+  state.hotspots.centerMetal = {x:bx, y:by+80, w:86, h:32};
+}
+
+function drawField(g,mode,input){
+  ctx.strokeStyle = css("--field");
+  ctx.fillStyle = css("--field");
+  ctx.lineWidth = 2.4;
+  for(let i=0;i<7;i++){
+    const x = g.left+28+i*(g.plateW-56)/6;
+    if(mode === "conductor"){
+      const hs = state.hotspots.conductor;
+      const y1 = hs ? Math.max(g.top+24, hs.y-8) : g.cy-18;
+      const y2 = hs ? Math.min(g.bot-8, hs.y+hs.h+8) : g.cy+18;
+      arrow(x,g.top+20,x,y1);
+      arrow(x,y2,x,g.bot);
+    } else if(mode === "angled"){
+      const rise = (input.theta/25)*92;
+      const yTop = g.top - rise*((x-g.left)/g.plateW) + 22;
+      arrow(x,yTop,x,g.bot);
+    } else {
+      arrow(x,g.top+20,x,g.bot);
+    }
+  }
+}
+
+function drawCharges(g,mode,input){
+  ctx.font = "bold 20px sans-serif";
+  if(mode === "angled"){
+    const rise = (input.theta/25)*92;
+    for(let i=0;i<8;i++){
+      const x = g.left+18+i*(g.plateW-36)/7;
+      const y = g.top - (rise*(x-g.left)/g.plateW);
+      ctx.fillStyle = css("--pos");
+      ctx.fillText("+",x,y-8);
+      ctx.fillStyle = css("--neg");
+      ctx.fillText("−",x,g.bot+32);
+    }
+    return;
+  }
+  for(let x=g.left+20; x<g.right-12; x+=28){
+    ctx.fillStyle = css("--pos");
+    ctx.fillText("+",x,g.top-7);
+    ctx.fillStyle = css("--neg");
+    ctx.fillText("−",x,g.bot+32);
+  }
+}
+
+function drawScale(g,input,mode){
+  ctx.strokeStyle = css("--axis");
+  ctx.fillStyle = css("--ink");
+  ctx.lineWidth = 2;
+  const dx = mode === "conductor" ? g.right+150 : g.right+58;
+  arrow(dx,g.top+7,dx,g.bot+7);
+  ctx.font = "14px sans-serif";
+  ctx.fillText(`d = ${fmt(input.dmm)} mm`, dx+17, g.cy+5);
+  arrow(g.left,g.bot+62,g.right,g.bot+62);
+  ctx.fillText(`A = ${fmt(input.Amm2,0)} mm²`, g.cx-46, g.bot+86);
+}
+
+function drawVoltageIndicator(input,result,w,h){
+  if(!state.showVoltage) return;
+  ensureUi(w,h);
+  const s = state.ui.scale, x = state.ui.volt.x, y = state.ui.volt.y, bw = 190*s, bh = 72*s;
+  roundRect(x,y,bw,bh,10,"rgba(255,255,255,.92)","#222",1.2);
+  ctx.fillStyle = "#111";
+  ctx.font = `bold ${Math.round(12*s)}px sans-serif`;
+  ctx.fillText("Voltaje (arrastra)", x+10*s, y+18*s);
+  ctx.font = `bold ${Math.round(22*s)}px sans-serif`;
+  ctx.fillText(`${fmt(result.V)} V`, x+36*s, y+50*s);
+  drawPanelButtons(x,y,bw,bh,"voltPanel","closeVolt","resizeVolt");
+}
+
+function drawKappaControl(input,w,h){
+  if(!state.showKappaBox) return;
+  ensureUi(w,h);
+  const s = state.ui.scale, x = state.ui.kappaBox.x, y = state.ui.kappaBox.y, bw = 220*s, bh = 90*s;
+  roundRect(x,y,bw,bh,10,"rgba(255,255,255,.92)","#222",1.2);
+  ctx.fillStyle = "#111";
+  ctx.font = `bold ${Math.round(12*s)}px sans-serif`;
+  ctx.fillText("Permisividad κ (arrastra)", x+10*s, y+18*s);
+  ctx.font = `bold ${Math.round(15*s)}px sans-serif`;
+  ctx.fillText(`κ = ${fmt(input.k)}`, x+10*s, y+40*s);
+  ctx.strokeStyle = "#666";
+  ctx.lineWidth = 3;
+  const x0 = x+18*s, y0 = y+64*s, len = 160*s;
+  line(x0,y0,x0+len,y0);
+  const t = (input.k-1)/(20-1);
+  const knobX = x0+t*len;
+  ctx.fillStyle = "#e97912";
+  ctx.beginPath(); ctx.arc(knobX,y0,9*s,0,Math.PI*2); ctx.fill();
+  state.hotspots.kappa = {x:knobX-12*s,y:y0-12*s,w:24*s,h:24*s,x0:x0,w0:len};
+  drawPanelButtons(x,y,bw,bh,"kappaPanel","closeKappa","resizeKappa");
+}
+
+function drawHandles(g,input,mode){
+  // handle distancia d, siempre en el lado derecho exterior
+  const dX = g.right + (mode === "conductor" ? 170 : 42);
+  roundRect(dX,g.cy-16,32,34,6,"#35b857","#14592b",1.6);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText("d",dX+12,g.cy+7);
+  state.hotspots.dist = {x:dX,y:g.cy-16,w:32,h:34};
+
+  roundRect(g.right-16,g.top-34,32,24,6,"#4aa3ff","#174e87",1.6);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 15px sans-serif";
+  ctx.fillText("A",g.right-6,g.top-17);
+  state.hotspots.area = {x:g.right-16,y:g.top-34,w:32,h:24};
+
+  if(state.hotspots.diel){
+    roundRect(g.left-6, g.top-42, 150, 24, 6, "rgba(255,255,255,.86)", "#2d6a4f", 1);
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 12px sans-serif";
+    ctx.fillText("arrastra dieléctrico", g.left+12, g.top-26);
+  }
+  if(mode === "angled"){
+    roundRect(g.right+34,g.top-38,110,22,6,"rgba(255,255,255,.90)","#174e87",1);
+    ctx.fillStyle="#174e87"; ctx.font="bold 12px sans-serif"; ctx.fillText("ángulo θ (arrastra)",g.right+40,g.top-22);
+  }
+}
+
+function drawMaterialsControl(input,w,h){
+  if(!state.showMaterialsBox) return;
+  ensureUi(w,h);
+  const s = state.ui.scale, x = state.ui.materialsBox.x, y = state.ui.materialsBox.y, bw = 215*s, bh = 124*s;
+  roundRect(x,y,bw,bh,10,"rgba(255,255,255,.94)","#222",1.2);
+  ctx.fillStyle = "#111";
+  ctx.font = `bold ${Math.round(12*s)}px sans-serif`;
+  ctx.fillText("κ₁ κ₂ κ₃ (arrastra)", x+10*s, y+18*s);
+  const rows = [
+    {label:"κ₁", value: Number($("k1Input").value), key:"k1", color:"#e67e22"},
+    {label:"κ₂", value: Number($("k2Input").value), key:"k2", color:"#14b8a6"},
+    {label:"κ₃", value: Number($("k3Input").value), key:"k3", color:"#8b5cf6"}
+  ];
+  rows.forEach((r,i)=>{
+    const yy = y + (36 + i*26)*s;
+    ctx.font = `bold ${Math.round(13*s)}px sans-serif`;
+    ctx.fillStyle = "#111";
+    ctx.fillText(`${r.label}=${fmt(r.value)}`, x+10*s, yy);
+    const x0 = x+72*s, len = 110*s;
+    ctx.strokeStyle = "#666"; ctx.lineWidth = 3;
+    line(x0, yy-5*s, x0+len, yy-5*s);
+    const t = (r.value-1)/(20-1);
+    const knobX = x0 + t*len;
+    ctx.fillStyle = r.color;
+    ctx.beginPath(); ctx.arc(knobX, yy-5*s, 7*s, 0, Math.PI*2); ctx.fill();
+    state.hotspots[r.key] = {x:knobX-12*s, y:yy-17*s, w:24*s, h:24*s, x0:x0, w0:len};
+  });
+  drawPanelButtons(x,y,bw,bh,"materialsPanel","closeMaterials","resizeMaterials");
+}
+
+function drawHandles(g,input,mode){
+  // handle distancia d, siempre en el lado derecho exterior
+  const dX = g.right + (mode === "conductor" ? 170 : 42);
+  roundRect(dX,g.cy-16,32,34,6,"#35b857","#14592b",1.6);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText("d",dX+12,g.cy+7);
+  state.hotspots.dist = {x:dX,y:g.cy-16,w:32,h:34};
+
+  roundRect(g.right-16,g.top-34,32,24,6,"#4aa3ff","#174e87",1.6);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 15px sans-serif";
+  ctx.fillText("A",g.right-6,g.top-17);
+  state.hotspots.area = {x:g.right-16,y:g.top-34,w:32,h:24};
+
+  if(state.hotspots.diel){
+    roundRect(g.left-6, g.top-42, 150, 24, 6, "rgba(255,255,255,.86)", "#2d6a4f", 1);
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 12px sans-serif";
+    ctx.fillText("arrastra dieléctrico", g.left+12, g.top-26);
+  }
+  if(mode === "angled"){
+    roundRect(g.right+34,g.top-38,110,22,6,"rgba(255,255,255,.90)","#174e87",1);
+    ctx.fillStyle="#174e87"; ctx.font="bold 12px sans-serif"; ctx.fillText("ángulo θ (arrastra)",g.right+40,g.top-22);
+  }
+}
+
+function drawAngled(input,result,g,w,h){
+  drawBattery(input,w,h);
+  drawWires(input,g,w,h);
+  drawStateBox(input,result,w,h);
+
+  drawPlate(g.left,g.bot,g.plateW,"bottom");
+  const rise = (input.theta/25)*92;
+  ctx.fillStyle = "#e9edf1";
+  ctx.strokeStyle = "#111";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(g.left,g.top);
+  ctx.lineTo(g.right,g.top-rise);
+  ctx.lineTo(g.right,g.top-rise+14);
+  ctx.lineTo(g.left,g.top+14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  if(state.showField) drawField(g,"angled",input);
+  if(state.showCharges) drawCharges(g,"angled",input);
+  if(state.showScale) drawScale(g,input,"angled");
+  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+  ctx.fillStyle = css("--ink");
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText(`θ = ${fmt(input.theta)}° (arrastra)`, g.right+42,g.top-12);
+  state.hotspots.theta = {x:g.right-30,y:g.top-rise-10,w:40,h:30};
+}
+
+function drawCylinder(input,result,w,h){
+  drawBattery(input,w,h);
+  drawStateBox(input,result,w,h);
+  const cx=w*0.55, cy=h*0.55;
+  ctx.strokeStyle="#235083";
+  ctx.lineWidth=3;
+  ctx.fillStyle="rgba(255,255,255,.25)";
+  ellipse(cx,cy-115,120,32,true,false);
+  line(cx-120,cy-115,cx-120,cy+120);
+  line(cx+120,cy-115,cx+120,cy+120);
+  ellipse(cx,cy+120,120,32,true,false);
+
+  ctx.fillStyle=css("--dielectric");
+  ctx.fillRect(cx-120,cy,240,120);
+  ellipse(cx,cy,120,32,true,true);
+
+  ctx.fillStyle="rgba(255,220,120,.55)";
+  ctx.strokeStyle="#b78d20";
+  ctx.fillRect(cx-30,cy-118,60,238);
+  ctx.strokeRect(cx-30,cy-118,60,238);
+
+  ctx.fillStyle="#111";
+  ctx.font="bold 16px sans-serif";
+  ctx.fillText(`R₁ = ${fmt(input.R1*100)} cm`,cx-105,cy-140);
+  ctx.fillText(`R₂ = ${fmt(input.R2*100)} cm`,cx+40,cy-140);
+  ctx.fillText(`L = ${fmt(input.L*100)} cm`,cx-32,cy+162);
+  ctx.fillText(`κ = ${fmt(input.k)}`,cx+50,cy+70);
+  if(state.showVoltage) drawVoltageIndicator(input,result,w,h);
+  drawKappaControl(input,w,h);
+}
+
+function drawNetwork(input,result,w,h){
+  drawStateBox(input,result,w,h);
+
+  const left = Math.max(250, w*0.20);
+  const right = Math.min(w-130, w*0.84);
+  const top = Math.max(165, h*0.28);
+  const bottom = Math.min(h-135, h*0.72);
+  const mid = (top+bottom)/2;
+
+  ctx.save();
+
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText("Red equivalente: rama superior en serie, rama inferior en paralelo", left, top-72);
+  ctx.font = "14px sans-serif";
+  ctx.fillText("Los nodos A y B son comunes a las dos ramas: por eso las ramas están en paralelo.", left, top-48);
+
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 4;
+  line(left, top, left, bottom);
+  line(right, top, right, bottom);
+
+  ctx.fillStyle = "#111";
+  ctx.beginPath(); ctx.arc(left, mid, 7, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(right, mid, 7, 0, Math.PI*2); ctx.fill();
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText("A", left-24, mid+5);
+  ctx.fillText("B", right+14, mid+5);
+
+  const bx = left-105;
+  drawBatterySymbol(bx, mid, input);
+  drawNetworkSwitch(bx+58, mid, input);
+
+  ctx.strokeStyle = input.battery ? "#333" : "#777";
+  ctx.lineWidth = 4;
+  line(bx+86, mid, left, mid);
+
+  // Rama superior: C1 y C2 en serie
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 4;
+  line(left, top, left+78, top);
+  drawCapOnLine(left+132, top, "C₁");
+  line(left+146, top, left+230, top);
+  drawCapOnLine(left+286, top, "C₂");
+  line(left+300, top, right, top);
+
+  // Rama inferior: C3 en paralelo con la rama superior
+  line(left, bottom, left+170, bottom);
+  drawCapOnLine(left+235, bottom, "C₃");
+  line(left+250, bottom, right, bottom);
+
+  ctx.strokeStyle = "#006d77";
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([8,5]);
+  roundRect(left-18, top-22, right-left+36, bottom-top+44, 10, null, "#006d77", 2);
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 15px sans-serif";
+  ctx.fillText(`Rama superior: C₁ y C₂ en SERIE → C₁₂ = ${fmtSI(result.C12,"F")}`, left+10, top+55);
+  ctx.fillText(`Rama inferior: C₃ = ${fmtSI(result.C3,"F")}`, left+10, bottom+42);
+  ctx.fillText(`Las dos ramas están en PARALELO → Ceq = C₁₂ + C₃ = ${fmtSI(result.C,"F")}`, left+10, bottom+70);
+
+  if(input.battery && state.flow && state.flow.dir !== "none"){
+    ctx.strokeStyle = state.flow.dir === "batteryToCap" ? "#d35400" : "#8e44ad";
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.lineWidth = 3;
+    if(state.flow.dir === "batteryToCap"){
+      arrow(bx+90, mid-24, left-12, mid-24);
+      ctx.fillText("carga: batería → red", bx+82, mid-34);
+    } else {
+      arrow(left-12, mid-24, bx+90, mid-24);
+      ctx.fillText("carga: red → batería", bx+82, mid-34);
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawCircuit2530(input,result,w,h){
+  drawStateBox(input,result,w,h);
+  const left=210, right=w-120, top=130, bottom=h-110, mid=(top+bottom)/2;
+  const nodeX=right-190, nodeY=mid+34;
+  ctx.save();
+  ctx.fillStyle="#111"; ctx.font="bold 18px sans-serif";
+  ctx.fillText("Red mixta: C₁ en paralelo con una rama compuesta", 190, 40);
+  drawBatterySymbol(48, mid, input); drawNetworkSwitch(100, mid, input);
+  ctx.strokeStyle=input.battery?"#333":"#777"; ctx.lineWidth=4;
+  line(160, top, 160, bottom); line(right, top, right, bottom);
+  line(160, top, right, top); line(160, bottom, right, bottom);
+  line(160, mid, 118, mid);
+  // C1 left branch
+  drawCapOnVertical(160, top+85, "C₁");
+  // top-right mixed subnetwork
+  line(nodeX, top, nodeX, nodeY);
+  line(right, top, right, nodeY);
+  line(nodeX, nodeY, right, nodeY);
+  // branch with C2 and C3 in series
+  drawCapOnVertical(nodeX, top+55, "C₂");
+  drawCapOnVertical(nodeX, top+145, "C₃");
+  // parallel branch with C4
+  drawCapOnVertical(right, top+100, "C₄");
+  // C5 from nodeY to bottom rail
+  line((nodeX+right)/2, nodeY, (nodeX+right)/2, nodeY+36);
+  drawCapOnVertical((nodeX+right)/2, nodeY+92, "C₅");
+  line((nodeX+right)/2, nodeY+120, (nodeX+right)/2, bottom);
+  // summary
+  ctx.fillStyle="#111"; ctx.font="bold 14px sans-serif";
+  ctx.fillText(`C₂₃ = ${fmtSI(result.C23,"F")}`, 200, bottom-70);
+  ctx.fillText(`Csup = ${fmtSI(result.Csup,"F")}`, 200, bottom-48);
+  ctx.fillText(`Cder = ${fmtSI(result.Cder,"F")}`, 200, bottom-26);
+  ctx.fillText(`Ceq = ${fmtSI(result.C,"F")}`, 200, bottom-4);
+  ctx.fillText(`q₁ = ${fmtSI(result.q1,"C")}  |  q₂ = ${fmtSI(result.q2,"C")}`, 460, bottom-26);
+  if(input.battery && state.flow && state.flow.dir !== "none") drawFlowArrow(130, mid-26, 150, state.flow.dir);
+  ctx.restore();
+}
+
+function drawCircuit2531(input,result,w,h){
+  drawStateBox(input,result,w,h);
+  const left=220, right=w-120, top=120, bottom=h-110, mid=(top+bottom)/2;
+  ctx.save();
+  ctx.fillStyle="#111"; ctx.font="bold 18px sans-serif";
+  ctx.fillText("Circuito de dos bloques en serie", 185, 40);
+  drawBatterySymbol(48, mid, input); drawNetworkSwitch(100, mid, input);
+  ctx.strokeStyle=input.battery?"#333":"#777"; ctx.lineWidth=4;
+  const xA=left, xM=(left+right)/2, xR=right;
+  line(xA, top, xR, top);
+  line(xA, bottom, xM, bottom);
+  line(xA, top, xA, bottom);
+  line(xM, top+70, xM, bottom);
+  line(xR, top, xR, mid+24);
+  line(xM, mid+24, xR, mid+24);
+  line(xA, mid+24, xR, mid+24);
+  line(xA, mid, 118, mid);
+  // upper block elements to node M
+  drawCapOnVertical(xA+120, top+90, "C₄");
+  drawCapOnVertical(xM, top+55, "C₅");
+  drawCapOnVertical(xM, top+145, "C₃");
+  drawCapOnLine(xR-60, top, "C₂");
+  // lower block to bottom node
+  drawCapOnVertical(xA+120, bottom-90, "C₆");
+  drawCapOnLine(xM-20, bottom, "C₁");
+  ctx.fillStyle="#111"; ctx.font="bold 14px sans-serif";
+  ctx.fillText(`C₅₃ = ${fmtSI(result.C53,"F")}`, 210, bottom-76);
+  ctx.fillText(`C_A = ${fmtSI(result.CA,"F")}`, 210, bottom-54);
+  ctx.fillText(`C_B = ${fmtSI(result.CB,"F")}`, 210, bottom-32);
+  ctx.fillText(`Ceq = ${fmtSI(result.C,"F")}`, 210, bottom-10);
+  ctx.fillText(`q₁=${fmtSI(result.q1,"C")}, q₂=${fmtSI(result.q2,"C")}, q₃=${fmtSI(result.q3,"C")}`, 430, bottom-22);
+  if(input.battery && state.flow && state.flow.dir !== "none") drawFlowArrow(130, mid-26, 150, state.flow.dir);
+  ctx.restore();
+}
+
+function drawCircuit2532(input,result,w,h){
+  drawStateBox(input,result,w,h);
+  const left=270, right=w-130, top=180, bottom=h-160, mid=(top+bottom)/2;
+  ctx.save();
+  ctx.fillStyle="#111"; ctx.font="bold 18px sans-serif";
+  ctx.fillText("Circuito: C₁ en serie con (C₂ ∥ C₃)", 210, 40);
+  drawBatterySymbol(72, mid, input); drawNetworkSwitch(124, mid, input);
+  ctx.strokeStyle=input.battery?"#333":"#777"; ctx.lineWidth=4;
+  line(170, mid, left, mid);
+  line(left, mid, left+60, mid);
+  drawCapOnLine(left+120, mid, "C₁");
+  line(left+132, mid, right, mid);
+  line(right, mid, right, bottom);
+  line(left+132, bottom, right, bottom);
+  // parallel branches
+  drawCapOnVertical(left+250, mid+76, "C₂");
+  drawCapOnVertical(left+360, mid+76, "C₃");
+  // mini q-V graph
+  drawMiniQVGraph(210, bottom-10, 220, 130, [input.c1,input.c2,input.c3]);
+  ctx.fillStyle="#111"; ctx.font="bold 14px sans-serif";
+  ctx.fillText(`C₂₃ = ${fmtSI(result.C23,"F")}`, 470, bottom+20);
+  ctx.fillText(`Ceq = ${fmtSI(result.C,"F")}`, 470, bottom+42);
+  ctx.fillText(`q₁ = ${fmtSI(result.q1,"C")}`, 470, bottom+64);
+  ctx.fillText(`q₂ = ${fmtSI(result.q2,"C")}  |  q₃ = ${fmtSI(result.q3,"C")}`, 470, bottom+86);
+  if(input.battery && state.flow && state.flow.dir !== "none") drawFlowArrow(150, mid-26, 170, state.flow.dir);
+  ctx.restore();
+}
+
+
+function drawCircuit2555(input,result,w,h){
+  ensureUi(w,h);
+
+  if(state.lastCircuitLayout !== "fig2555"){
+    const infoW = Math.min(360, Math.max(280, w - 36));
+    const infoH = 142;
+    state.ui.bars.x = 14;
+    state.ui.bars.y = Math.max(18, h - 128 - 12);
+    state.ui.sceneInfo.x = Math.max(14, w - infoW - 14);
+    state.ui.sceneInfo.y = Math.max(18, h - infoH - 18);
+    state.lastCircuitLayout = "fig2555";
+  }
+
+  const uF = v => fmt((v||0)*1e6);
+  const uC = q => fmt((q||0)*1e6);
+
+  const top = Math.max(118, h*0.20);
+  const mid = top + 165;
+  const bottom = mid + 162;
+
+  const margin = clamp(w*0.055, 22, 52);
+  const xBat = margin + 44;
+  const leftBus = clamp(w*0.39, xBat + 150, w - 330);
+  const right = w - margin;
+  const xC1 = (xBat + leftBus) / 2;
+  const xSwitchL = xBat + 38;
+  const xSwitchR = leftBus - 24;
+
+  const x2 = leftBus;
+  const x3 = leftBus + (right-leftBus)*0.46;
+  const x4 = right;
+  const x5 = x2;
+  const x6 = x3;
+
+  const capTopY = (top+mid)/2;
+  const capBotY = (mid+bottom)/2;
+  const dashPad = 26;
+
+  function node(x,y,r=5){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+  function lineSeg(x1,y1,x2,y2,color="#3a3f46",lw=4.5){ ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.lineJoin='round'; line(x1,y1,x2,y2); ctx.restore(); }
+  function capH(cx,y,label,voltage){
+    const gap=18, hh=24;
+    ctx.save();
+    ctx.strokeStyle = css('--brand-2'); ctx.lineWidth = 4;
+    line(cx-gap,y-hh,cx-gap,y+hh);
+    line(cx+gap,y-hh,cx+gap,y+hh);
+    ctx.fillStyle = '#111';
+    ctx.font = 'bold 17px sans-serif';
+    ctx.fillText(label, cx-11, y-32);
+    ctx.font = '12px sans-serif';
+    if(voltage) ctx.fillText(voltage, cx+24, y+24);
+    ctx.restore();
+    return gap;
+  }
+  function capV(x,cy,label,charge,voltage,chargeDx=22){
+    const gap=16, half=22;
+    const alignRight = x > w - 86;
+    ctx.save();
+    ctx.strokeStyle = css('--brand-2'); ctx.lineWidth = 4;
+    line(x-half,cy-gap,x+half,cy-gap);
+    line(x-half,cy+gap,x+half,cy+gap);
+    ctx.fillStyle = '#111';
+    ctx.font = 'bold 17px sans-serif';
+    ctx.fillText(label, alignRight ? x-48 : x+14, cy-22);
+    ctx.font = '12px sans-serif';
+    if(charge) ctx.fillText(charge, alignRight ? x-72 : x+chargeDx, cy+4);
+    if(voltage) ctx.fillText(voltage, alignRight ? x-78 : x-30, cy+42);
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.fillStyle = css('--ink');
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('13. Serie y paralelo', leftBus-8, 42);
+  ctx.font = '13px sans-serif';
+  ctx.fillText('C₁ en serie con (C₂ ∥ C₃ ∥ C₄) y luego con (C₅ ∥ C₆)', leftBus-8, 64);
+
+  // Fuente de poder integrada a la rama izquierda.
+  const yBattery = (top + bottom) / 2 - 18;
+  const yPlus = yBattery - 14;
+  const yMinus = yBattery + 14;
+  lineSeg(xBat, top, xBat, yPlus, '#6b7280', 4.5);
+  lineSeg(xBat, yMinus, xBat, bottom, '#6b7280', 4.5);
+  lineSeg(xBat-30, yPlus, xBat+30, yPlus, input.battery ? '#3a3f46' : '#888', 6);
+  lineSeg(xBat-18, yMinus, xBat+18, yMinus, input.battery ? '#3a3f46' : '#888', 5);
+  ctx.fillStyle = '#111';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText(`${fmt(input.V)} V`, xBat-74, yPlus-54);
+  ctx.fillText('+', xBat-54, yPlus+8);
+  ctx.fillText('−', xBat-54, yMinus+6);
+
+  // Riel superior con C1 en serie
+  lineSeg(xBat, top, xC1-18, top, '#8a8f98', 4.5);
+  capH(xC1, top, input.c1Dielectric ? 'C₁κ' : 'C₁', `V₁=${fmt(result.V1)} V`);
+  if(input.c1Dielectric){
+    ctx.save();
+    ctx.fillStyle = 'rgba(34,197,94,.22)';
+    ctx.strokeStyle = 'rgba(22,163,74,.70)';
+    ctx.lineWidth = 1.5;
+    roundRect(xC1-14, top-35, 28, 70, 5, 'rgba(34,197,94,.22)', 'rgba(22,163,74,.70)', 1.5);
+    ctx.fillStyle = '#166534';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(`κ=${fmt(input.k)}`, xC1-12, top+48);
+    ctx.restore();
+  }
+  lineSeg(xC1+18, top, right, top, '#b87416', 4.5);
+
+  // Nodos medio e inferior. No hay bus vertical continuo: cada rama se corta por su capacitor.
+  lineSeg(leftBus, mid, right, mid, '#b87416', 4.5);
+  lineSeg(xBat, bottom, xSwitchL, bottom, '#8a8f98', 4.5);
+  lineSeg(xSwitchR, bottom, x6, bottom, '#b87416', 4.5);
+
+  // interruptor
+  ctx.save();
+  ctx.strokeStyle = input.battery ? '#15803d' : '#b91c1c';
+  ctx.lineWidth = 4;
+  line(xSwitchL, bottom, xSwitchL+18, bottom);
+  if(input.battery) line(xSwitchL+18, bottom, xSwitchR, bottom);
+  else line(xSwitchL+18, bottom, xSwitchR-8, bottom-20);
+  ctx.fillStyle = input.battery ? '#15803d' : '#b91c1c';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText(input.battery ? 'switch ON' : 'switch OFF', xSwitchL+2, bottom+28);
+  ctx.restore();
+  state.hotspots.switch = {x:xSwitchL-10,y:bottom-28,w:90,h:58};
+
+  // marcos suaves de los sub-bloques
+  ctx.save();
+  ctx.setLineDash([8,7]);
+  roundRect(leftBus-dashPad, top+38, right-leftBus+2*dashPad, mid-top-56, 10, null, 'rgba(0,116,126,.42)', 2);
+  roundRect(leftBus-dashPad, mid+22, x6-leftBus+2*dashPad, bottom-mid-44, 10, null, 'rgba(0,116,126,.42)', 2);
+  ctx.restore();
+
+  // etiquetas de bloques fuera de la figura
+  ctx.fillStyle = '#0b7285';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText(`Bloque superior: C₂₃₄ = ${uF(result.C234)} μF`, leftBus+18, top+22);
+  ctx.fillText(`Bloque inferior: C₅₆ = ${uF(result.C56)} μF`, leftBus+18, bottom-14);
+
+  // C2 C3 C4 en paralelo
+  [
+    [x2,'C₂',`q₂=${uC(result.q2)} μC`,result.V234,20],
+    [x3,'C₃',`q₃=${uC(result.q3)} μC`,result.V234,20],
+    [x4,'C₄',`q₄=${uC(result.q4)} μC`,result.V234,14]
+  ].forEach(([x,label,q,v,dx])=>{
+    lineSeg(x, top, x, capTopY-16, '#b87416', 4);
+    lineSeg(x, capTopY+16, x, mid, '#b87416', 4);
+    capV(x, capTopY, label, q, `V=${fmt(v)} V`, dx);
+  });
+
+  // C5 C6 en paralelo
+  [
+    [x5,'C₅',`q₅=${uC(result.q5)} μC`,result.V56,18],
+    [x6,'C₆',`q₆=${uC(result.q6)} μC`,result.V56,18]
+  ].forEach(([x,label,q,v,dx])=>{
+    lineSeg(x, mid, x, capBotY-16, '#b87416', 4);
+    lineSeg(x, capBotY+16, x, bottom, '#b87416', 4);
+    capV(x, capBotY, label, q, `V=${fmt(v)} V`, dx);
+  });
+
+  // nodos
+  ctx.fillStyle = '#111';
+  [ [leftBus,top],[x3,top],[right,top],[leftBus,mid],[x3,mid],[right,mid],[leftBus,bottom],[x6,bottom] ].forEach(([x,y])=>node(x,y,5));
+
+  // resumen inferior
+  ctx.fillStyle = '#006d77';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText(`Ceq = ${uF(result.C)} μF`, leftBus, bottom+38);
+  ctx.fillText(`Qtotal = ${uC(result.Qs)} μC`, Math.min(leftBus+220, right-132), bottom+38);
+
+  if(input.battery && state.flow && state.flow.dir !== 'none') drawFlowArrow(xSwitchL+4, bottom+28, xSwitchL+58, state.flow.dir, true);
+  ctx.restore();
+
+  if(w >= 760){
+    const infoW = Math.min(360, Math.max(280, w - 36));
+    drawSceneInfoPanel('Resultados del circuito', [
+      `C₂₃₄=${uF(result.C234)} μF   C₅₆=${uF(result.C56)} μF`,
+      `Ceq=${uF(result.C)} μF   Qtotal=${uC(result.Qs)} μC`,
+      `V₁=${fmt(result.V1)} V, V₂₃₄=${fmt(result.V234)} V, V₅₆=${fmt(result.V56)} V`,
+      `q₁=${uC(result.q1)} μC, q₂=${uC(result.q2)} μC, q₃=${uC(result.q3)} μC`,
+      `q₄=${uC(result.q4)} μC, q₅=${uC(result.q5)} μC, q₆=${uC(result.q6)} μC`,
+      `Verificación: V₁+V₂₃₄+V₅₆ = ${fmt(result.voltageCheck)} V`
+    ], infoW, 142);
+  }
+}
+
+function drawCapOnVertical(x,y,label){
+  ctx.strokeStyle=css("--brand-2");
+  ctx.lineWidth=5;
+  line(x-24,y-12,x+24,y-12);
+  line(x-24,y+12,x+24,y+12);
+  ctx.fillStyle="#111";
+  ctx.font="bold 16px sans-serif";
+  ctx.fillText(label,x+12,y-18);
+}
+
+function drawFlowArrow(x1,y,x2,dir,compact=false){
+  ctx.save();
+  ctx.strokeStyle = dir === "batteryToCap" ? "#d35400" : "#8e44ad";
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.lineWidth = compact ? 2 : 3;
+  ctx.font = compact ? "10px sans-serif" : "12px sans-serif";
+  const label = compact ? "q" : "carga";
+  if(dir === "batteryToCap") { arrow(x1,y,x2,y); ctx.fillText(`${label} →`, x1+6, y-6); }
+  else { arrow(x2,y,x1,y); ctx.fillText(`${label} ←`, x1+6, y-6); }
+  ctx.restore();
+}
+
+function drawMiniQVGraph(x,y,w,h,vals){
+  ctx.save();
+  roundRect(x,y,w,h,8,"rgba(255,255,255,.85)","#999",1.2);
+  ctx.strokeStyle="#444"; ctx.lineWidth=1.5;
+  line(x+30,y+h-24,x+w-12,y+h-24); line(x+30,y+h-24,x+30,y+14);
+  ctx.fillStyle="#111"; ctx.font="12px sans-serif"; ctx.fillText("q", x+10, y+18); ctx.fillText("V", x+w-16, y+h-8);
+  const maxC = Math.max(...vals, 1);
+  const colors = ["#1d3557", "#2a9d8f", "#d97706"];
+  vals.forEach((c,i)=>{
+    const x2 = x+w-18;
+    const y2 = y+h-24 - (h-45)*(c/maxC)*0.9;
+    ctx.strokeStyle = colors[i]; ctx.lineWidth = 2.5;
+    line(x+30, y+h-24, x2, y2);
+    ctx.fillStyle = colors[i]; ctx.fillText(`C${i+1}`, x2-18, y2-4);
+  });
+  ctx.restore();
+}
+
+function drawBatterySymbol(x,y,input){
+  ctx.save();
+  ctx.strokeStyle = input.battery ? "#222" : "#777";
+  ctx.fillStyle = input.battery ? "#111" : "#777";
+  ctx.lineWidth = 4;
+
+  line(x, y, x+22, y);
+  line(x+22, y-34, x+22, y+34);
+  line(x+42, y-20, x+42, y+20);
+  line(x+42, y, x+64, y);
+
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText("+", x+14, y-42);
+  ctx.fillText("−", x+35, y+42);
+  ctx.font = "bold 14px sans-serif";
+  ctx.fillText(`${fmt(input.V)} V`, x-6, y-52);
+
+  ctx.restore();
+}
+
+function drawNetworkSwitch(x,y,input){
+  ctx.save();
+  ctx.strokeStyle = input.battery ? "#1b7f45" : "#ad2f2f";
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.lineWidth = 3;
+
+  const sx = x+12;
+  line(sx, y+22, sx+18, y+22);
+  if(input.battery){
+    line(sx+18, y+22, sx+42, y+22);
+  } else {
+    line(sx+18, y+22, sx+42, y+8);
+  }
+  line(sx+42, y+22, sx+60, y+22);
+
+  ctx.font = "bold 12px sans-serif";
+  ctx.fillText(input.battery ? "ON" : "OFF", sx+10, y+45);
+
+  state.hotspots.switch = {x:sx-6, y:y+2, w:76, h:52};
+  ctx.restore();
+}
+
+function drawCapOnLine(cx,y,label){
+  ctx.strokeStyle=css("--brand-2");
+  ctx.lineWidth=5;
+  line(cx-12,y-28,cx-12,y+28);
+  line(cx+12,y-28,cx+12,y+28);
+  ctx.fillStyle="#111";
+  ctx.font="bold 16px sans-serif";
+  ctx.fillText(label,cx-14,y-38);
+}
+
+function drawBars(result,w,h){
+  if(!state.showBars) return;
+  ensureUi(w,h);
+  const s = state.ui.scale, x = state.ui.bars.x, y = state.ui.bars.y, bw = 360*s, bh = 128*s;
+  roundRect(x,y,bw,bh,10,"rgba(255,255,255,.92)","#222",1.3);
+  ctx.fillStyle="#111";
+  ctx.font=`bold ${Math.round(12*s)}px sans-serif`;
+  ctx.fillText("Medidores (arrastra)",x+10*s,y+18*s);
+  const items = [
+    ["C",result.C,1e-11,"#2dbf58",fmtSI(result.C,"F")],
+    ["Q",Math.abs(result.Q),5e-11,"#ff6600",fmtSI(Math.abs(result.Q),"C")],
+    ["V",Math.abs(result.V),12,"#2d8cff",`${fmt(result.V)} V`],
+    ["E",Math.abs(result.E),6e3,"#7a58ff",fmtSI(result.E,"V/m")],
+    ["U",Math.abs(result.U),2e-10,"#f0d000",fmtSI(result.U,"J")]
+  ];
+  items.forEach((it,i) => {
+    const yy = y + (36+i*17)*s;
+    ctx.fillStyle="#111";
+    ctx.font=`${Math.round(12*s)}px sans-serif`;
+    ctx.fillText(it[0],x+12*s,yy);
+    ctx.fillText(it[4],x+42*s,yy);
+    ctx.strokeStyle="#111";
+    ctx.strokeRect(x+190*s,yy-10*s,130*s,10*s);
+    const frac = Number.isFinite(it[1]) ? Math.max(0.02,Math.min(1,it[1]/it[2])) : 0;
+    ctx.fillStyle=it[3];
+    ctx.fillRect(x+190*s,yy-10*s,130*s*frac,10*s);
+  });
+  drawPanelButtons(x,y,bw,bh,"barsPanel","closeBars","resizeBars");
+}
+
+function setupDrag(){
+  canvas.addEventListener("pointerdown", (event) => {
+    const m = mouse(event);
+    if(hit(m,state.hotspots.switch)) { $("batteryCheck").checked = !$("batteryCheck").checked; update(); return; }
+    if(hit(m,state.hotspots.closeBars)) { state.showBars = false; syncToggleLabel("barsBtn","Medidores",false); update(); return; }
+    if(hit(m,state.hotspots.closeVolt)) { state.showVoltage = false; syncToggleLabel("voltageBtn","Voltaje",false); update(); return; }
+    if(hit(m,state.hotspots.closeState)) { state.showStateBox = false; update(); return; }
+    if(hit(m,state.hotspots.closeKappa)) { state.showKappaBox = false; update(); return; }
+    if(hit(m,state.hotspots.closeMaterials)) { state.showMaterialsBox = false; update(); return; }
+    if(hit(m,state.hotspots.closeSceneInfo)) { state.showSceneInfoBox = false; update(); return; }
+    if(hit(m,state.hotspots.resizeBars) || hit(m,state.hotspots.resizeVolt) || hit(m,state.hotspots.resizeState) || hit(m,state.hotspots.resizeKappa) || hit(m,state.hotspots.resizeMaterials) || hit(m,state.hotspots.resizeSceneInfo)) { state.drag = {type:"resizeUI", startX:m.x, startScale:Number($("uiScaleInput").value)||1}; return; }
+    if(hit(m,state.hotspots.centerMetal)) { state.conductorOffset = 0; update(); return; }
+    else if(hit(m,state.hotspots.kappa)) state.drag = {type:"kappa"};
+    else if(hit(m,state.hotspots.k1)) state.drag = {type:"k1"};
+    else if(hit(m,state.hotspots.k2)) state.drag = {type:"k2"};
+    else if(hit(m,state.hotspots.k3)) state.drag = {type:"k3"};
+    else if(hit(m,state.hotspots.battery)) state.drag = {type:"battery"};
+    else if(hit(m,state.hotspots.dist)) state.drag = {type:"dist"};
+    else if(hit(m,state.hotspots.area)) state.drag = {type:"area"};
+    else if(hit(m,state.hotspots.diel)) state.drag = {type:"diel"};
+    else if(hit(m,state.hotspots.metalA)) state.drag = {type:"metalA"};
+    else if(hit(m,state.hotspots.conductor)) state.drag = {type:"conductor"};
+    else if(hit(m,state.hotspots.theta)) state.drag = {type:"theta"};
+    else if(hit(m,state.hotspots.sphereR1)) state.drag = {type:"sphereR1"};
+    else if(hit(m,state.hotspots.sphereR2)) state.drag = {type:"sphereR2"};
+    else if(hit(m,state.hotspots.sphereDiel)) state.drag = {type:"sphereDiel"};
+    else if(hit(m,state.hotspots.cylR1)) state.drag = {type:"cylR1"};
+    else if(hit(m,state.hotspots.cylR2)) state.drag = {type:"cylR2"};
+    else if(hit(m,state.hotspots.forceDiel)) state.drag = {type:"forceDiel"};
+    else if(hit(m,state.hotspots.barsPanel)) state.drag = {type:"movePanel", key:"bars", dx:m.x-state.ui.bars.x, dy:m.y-state.ui.bars.y};
+    else if(hit(m,state.hotspots.stateBox)) state.drag = {type:"movePanel", key:"stateBox", dx:m.x-state.ui.stateBox.x, dy:m.y-state.ui.stateBox.y};
+    else if(hit(m,state.hotspots.voltPanel)) state.drag = {type:"movePanel", key:"volt", dx:m.x-state.ui.volt.x, dy:m.y-state.ui.volt.y};
+    else if(hit(m,state.hotspots.kappaPanel)) state.drag = {type:"movePanel", key:"kappaBox", dx:m.x-state.ui.kappaBox.x, dy:m.y-state.ui.kappaBox.y};
+    else if(hit(m,state.hotspots.materialsPanel)) state.drag = {type:"movePanel", key:"materialsBox", dx:m.x-state.ui.materialsBox.x, dy:m.y-state.ui.materialsBox.y};
+    else if(hit(m,state.hotspots.sceneInfoPanel)) state.drag = {type:"movePanel", key:"sceneInfo", dx:m.x-state.ui.sceneInfo.x, dy:m.y-state.ui.sceneInfo.y};
+  });
+
+  canvas.addEventListener("pointermove", (event) => {
+    if(!state.drag) return;
+    const m = mouse(event);
+    const input = readInputs();
+    const g = geom(input,canvas.clientWidth,canvas.clientHeight);
+
+    if(state.drag.type === "dist"){
+      const gap = Math.abs(m.y - g.cy)*2;
+      const dmm = clamp((gap - 30)/7.5,1,20);
+      sync("dSlider","dInput",dmm,1);
+    }
+    if(state.drag.type === "area"){
+      const plateW = Math.abs(m.x - g.cx)*2;
+      const area = clamp((plateW - 180)/0.30,80,900);
+      sync("ASlider","AInput",Math.round(area/10)*10,0);
+    }
+    if(state.drag.type === "diel"){
+      const type = input.scenario;
+      if(type === "dielectricThickness") {
+        const f = clamp((m.y-(g.top+16))/(g.gap-18),0,1);
+        sync("fSlider","fInput",f,2);
+      } else {
+        const f = clamp((m.x-(g.left+8))/(g.plateW-16),0,1);
+        sync("fSlider","fInput",f,2);
+      }
+    }
+    if(state.drag.type === "conductor"){
+      const hs = state.hotspots.conductor;
+      state.conductorOffset = clamp(m.y - g.cy, -hs.maxOffset, hs.maxOffset);
+    }
+    if(state.drag.type === "metalA"){
+      const hs = state.hotspots.metalA;
+      const a_mm = clamp(Math.abs(m.y - hs.cy)*2/7, 0.5, Math.max(0.5, input.dmm-0.5));
+      $("aInput").value = Number(a_mm).toFixed(1);
+    }
+    if(state.drag.type === "theta"){
+      const theta = clamp((g.right - m.x + 40)/6, 0, 25);
+      sync("thetaInput","thetaInput",theta,1);
+    }
+
+    if(state.drag.type === "sphereR1"){
+      const hs = state.hotspots.sphereR1;
+      const rpix = Math.hypot(m.x-hs.cx, m.y-hs.cy);
+      const R2cm = Number($("R2Input").value);
+      const R1cm = clamp((rpix/(hs.scale*R2cm))*R2cm, 0.3, Math.max(0.4,R2cm-0.2));
+      $("R1Input").value = Number(R1cm).toFixed(2);
+    }
+    if(state.drag.type === "sphereR2"){
+      const hs = state.hotspots.sphereR2;
+      const rpix = Math.hypot(m.x-hs.cx, m.y-hs.cy);
+      const R2cm = clamp(rpix/hs.scale, Math.max(Number($("R1Input").value)+0.2,1), 10);
+      $("R2Input").value = Number(R2cm).toFixed(2);
+    }
+    if(state.drag.type === "sphereDiel"){
+      const hs = state.hotspots.sphereDiel;
+      const rpix = Math.hypot(m.x-hs.cx, m.y-hs.cy);
+      const f = clamp((rpix-hs.r1)/(hs.r2-hs.r1),0,1);
+      sync("fSlider","fInput",f,2);
+    }
+    if(state.drag.type === "cylR1"){
+      const hs = state.hotspots.cylR1;
+      const rpix = Math.abs(m.y-hs.cy);
+      const R2cm = Number($("R2Input").value);
+      const R1cm = clamp((rpix/(hs.scale*R2cm))*R2cm, 0.3, Math.max(0.4,R2cm-0.2));
+      $("R1Input").value = Number(R1cm).toFixed(2);
+    }
+    if(state.drag.type === "cylR2"){
+      const hs = state.hotspots.cylR2;
+      const rpix = Math.abs(m.y-hs.cy);
+      const R2cm = clamp(rpix/hs.scale, Math.max(Number($("R1Input").value)+0.2,1), 10);
+      $("R2Input").value = Number(R2cm).toFixed(2);
+    }
+    if(state.drag.type === "forceDiel"){
+      const hs = state.hotspots.forceDiel;
+      const f = clamp((m.x - hs.x0)/hs.w0, 0, 1);
+      sync("fSlider","fInput",f,2);
+    }
+
+    if(state.drag.type === "kappa"){
+      const hs = state.hotspots.kappa;
+      const t = clamp((m.x-hs.x0)/hs.w0,0,1);
+      const k = 1 + t*19;
+      sync("kSlider","kInput",k,1);
+    }
+    if(state.drag.type === "k1" || state.drag.type === "k2" || state.drag.type === "k3"){
+      const hs = state.hotspots[state.drag.type];
+      const t = clamp((m.x-hs.x0)/hs.w0,0,1);
+      const kval = 1 + t*19;
+      sync(`${state.drag.type}Slider`,`${state.drag.type}Input`,kval,1);
+    }
+    if(state.drag.type === "battery"){
+      const hs = state.hotspots.battery;
+      const t = clamp((hs.yBot - m.y)/(hs.yBot - hs.yTop),0,1);
+      const V = 0.5 + t*(12-0.5);
+      sync("VSlider","VInput",V,1);
+    }
+    if(state.drag.type === "resizeUI"){
+      const newScale = clamp(state.drag.startScale + (m.x - state.drag.startX)/260, 0.55, 1.65);
+      sync("uiScaleSlider","uiScaleInput",newScale,2);
+    }
+    if(state.drag.type === "movePanel"){
+      const s = Number(($("uiScaleInput")||{value:1}).value)||1;
+      let bw=180, bh=80;
+      if(state.drag.key === "bars") { bw=360*s; bh=126*s; }
+      if(state.drag.key === "stateBox") { bw=245*s; bh=84*s; }
+      if(state.drag.key === "volt") { bw=190*s; bh=70*s; }
+      if(state.drag.key === "kappaBox") { bw=220*s; bh=88*s; }
+      if(state.drag.key === "materialsBox") { bw=215*s; bh=122*s; }
+      if(state.drag.key === "sceneInfo") { bw=340*s; bh=160*s; }
+      state.ui[state.drag.key].x = clamp(m.x - state.drag.dx, 8, Math.max(8, canvas.clientWidth - bw - 8));
+      state.ui[state.drag.key].y = clamp(m.y - state.drag.dy, 8, Math.max(8, canvas.clientHeight - bh - 8));
+    }
+    update();
+  });
+
+  window.addEventListener("pointerup", () => { state.drag = null; });
+}
+
+// Quiz
+
+function mouse(event){
+  const r = canvas.getBoundingClientRect();
+  return {x:event.clientX-r.left, y:event.clientY-r.top};
+}
+function hit(m,box){
+  return box && m.x>=box.x && m.x<=box.x+box.w && m.y>=box.y && m.y<=box.y+box.h;
+}
+function sync(sliderId,inputId,value,decimals){
+  const v = decimals === 0 ? String(Math.round(value)) : Number(value).toFixed(decimals);
+  $(sliderId).value = v;
+  $(inputId).value = v;
+}
+
+// Quiz
+
+
+function startQuiz(){
+  clearInterval(state.quiz.timer);
+
+  const name = $("studentName").value.trim();
+  const email = $("studentEmail").value.trim();
+
+  if(name.split(/\s+/).length < 2){
+    $("feedback").textContent = "⚠️ Para empezar el examen escribe nombre completo: nombre y apellido.";
+    $("studentName").focus();
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    $("feedback").textContent = "⚠️ Para empezar el examen escribe un correo válido.";
+    $("studentEmail").focus();
+    return;
+  }
+
+  const level = $("levelSelect").value;
+  const examMode = $("examModeCheck").checked;
+  const items = generateQuiz(level);
+  if(!items || items.length < QUIZ_COUNT){
+    $("feedback").textContent = "⚠️ Error: no se pudo construir el banco de preguntas. Reinicia o revisa el archivo.";
+    return;
+  }
+
+  const attempt = nextAttempt(level,email);
+  const key = makeExamKey(level,attempt);
+
+  // Modo examen real: solución apagada y bloqueada.
+  $("solutionPanel").classList.remove("show");
+  $("solutionPanel").textContent = "";
+  $("solutionToggle").classList.remove("active");
+  $("solutionToggle").textContent = "Solución OFF";
+  $("solutionToggle").disabled = examMode;
+  setPanelExamLock(examMode);
+  $("levelSelect").disabled = true;
+  $("examModeCheck").disabled = true;
+
+  state.quiz = {
+    items,
+    idx:0,
+    score:0,
+    selected:null,
+    answered:false,
+    seconds: level==="avanzado" ? 30*60 : (level==="medio" ? 22*60 : 15*60),
+    timer:null,
+    level,
+    key,
+    started:true,
+    finished:false,
+    attempt,
+    name,
+    email,
+    answers:[],
+    examMode
+  };
+
+  $("examKeyBox").textContent = `Clave impresa: ${key}`;
+  $("resultBox").classList.remove("show");
+  $("resultBox").innerHTML = "";
+  $("feedback").textContent = "";
+
+  state.quiz.timer = setInterval(() => {
+    state.quiz.seconds = Math.max(0,state.quiz.seconds-1);
+    renderQuizInfo();
+    if(state.quiz.seconds === 0) finishQuiz();
+  },1000);
+
+  renderQuizInfo();
+  showQuizItem();
+}
+
+function resetQuiz(){
+  clearInterval(state.quiz.timer);
+  state.quiz = {items:[],idx:0,score:0,selected:null,answered:false,seconds:0,timer:null,level:null,key:null,started:false,finished:false,attempt:0,name:"",email:"",answers:[]};
+  $("levelSelect").disabled = false;
+  $("examModeCheck").disabled = false;
+  enforceSolutionMode();
+  setPanelExamLock(false);
+  $("testCounter").textContent = `Pregunta 0/${QUIZ_COUNT}`;
+  $("questionText").textContent = "Inicia el autotest para practicar cálculo y conceptos de capacitancia.";
+  $("questionMeta").textContent = "";
+  $("answersBox").innerHTML = "";
+  $("numericBox").style.display = "none";
+  $("feedback").textContent = "";
+  $("solutionPanel").textContent = "";
+  $("solutionPanel").classList.remove("show");
+  $("solutionToggle").classList.remove("active");
+  $("solutionToggle").textContent = "Solución OFF";
+  $("resultBox").classList.remove("show");
+  $("resultBox").innerHTML = "";
+  $("submitBtn").disabled = true;
+  $("nextBtn").disabled = true;
+  $("examKeyBox").textContent = "Clave impresa: —";
+  enforceSolutionMode();
+  renderQuizInfo();
+}
+
+function renderQuizInfo(){
+  const level = state.quiz.started ? state.quiz.level : $("levelSelect").value;
+  const s = state.quiz.seconds || 0;
+  const mm = String(Math.floor(s/60)).padStart(2,"0");
+  const ss = String(s%60).padStart(2,"0");
+  const base = level === "avanzado"
+    ? `Nivel avanzado: banco ampliado, salen ${QUIZ_COUNT}. Cálculo complejo: 25–30 min.`
+    : (level === "medio"
+      ? `Nivel medio: banco ampliado, salen ${QUIZ_COUNT}. Preguntas numéricas variadas: 18–22 min.`
+      : `Nivel básico: banco ampliado, salen ${QUIZ_COUNT}. Incluye una numérica con κ=1 y una conceptual nueva: 15 min.`);
+  $("quizInfo").textContent = state.quiz.started ? `${base} Tiempo restante ${mm}:${ss}.` : base;
+}
+
+function conceptQuestions(){
+  return [
+    {type:"mcq",scenario:"fig2555",fig:"Circuito serie y paralelo",prompt:"En la figura del circuito serie y paralelo, ¿qué capacitores comparten el mismo voltaje en el bloque superior?",options:["C₂, C₃ y C₄","C₁ y C₂","C₅ y C₁","Todos en serie"],answer:0,solution:"C₂, C₃ y C₄ están en paralelo y comparten V₂₃₄."},
+    {type:"mcq",scenario:"basic",fig:"Placas paralelas",prompt:"Con batería conectada, al aumentar d, ¿qué magnitud queda fija?",options:["Q","C","V","U"],answer:2,solution:"La batería fija el voltaje."},
+    {type:"mcq",scenario:"basic",fig:"Capacitor aislado",prompt:"Con capacitor desconectado, ¿qué magnitud queda fija?",options:["V","Q","C","E"],answer:1,solution:"Al quedar aislado, la carga no tiene camino para salir."},
+    {type:"mcq",scenario:"dielectricArea",fig:"Dieléctrico parcial en área",prompt:"Un dieléctrico insertado lateralmente equivale a capacitores en:",options:["Serie","Paralelo","Cortocircuito","Inductor"],answer:1,solution:"Las regiones comparten el mismo voltaje."},
+    {type:"mcq",scenario:"dielectricThickness",fig:"Dieléctrico parcial en espesor",prompt:"Un dieléctrico por capas en el espesor equivale a capacitores en:",options:["Serie","Paralelo","Corto","Resistor"],answer:0,solution:"Las capas están una después de otra en dirección del campo."},
+    {type:"mcq",scenario:"dielectricFull",fig:"Dieléctrico completo",prompt:"Si un dieléctrico llena todo el capacitor, la capacitancia:",options:["Disminuye κ veces","Aumenta κ veces","No cambia","Se hace cero"],answer:1,solution:"C=κC₀."},
+    {type:"mcq",scenario:"conductor",fig:"Conductor central",prompt:"Dentro de un conductor electrostático ideal, el campo eléctrico es:",options:["Máximo","Cero","Igual al del aire","Negativo"],answer:1,solution:"En equilibrio electrostático E=0 dentro del conductor."},
+    {type:"mcq",scenario:"sphere",fig:"Condensador esférico",prompt:"En un condensador esférico, el campo entre conductores es:",options:["Radial","Uniforme vertical","Tangencial","Cero"],answer:0,solution:"Por simetría es radial."},
+    {type:"mcq",scenario:"cylinderStd",fig:"Condensador cilíndrico",prompt:"La capacitancia del capacitor cilíndrico contiene:",options:["ln(R₂/R₁)","R₁+R₂","R₂−R₁ solamente","θ²"],answer:0,solution:"C=2πε₀L/ln(R₂/R₁)."},
+    {type:"mcq",scenario:"dielectricForce",fig:"Fuerza sobre dieléctrico",prompt:"La fuerza eléctrica sobre un dieléctrico parcialmente insertado tiende a:",options:["Sacarlo","Meterlo hacia el campo intenso","Rotarlo siempre","Anularlo"],answer:1,solution:"El dieléctrico es atraído hacia la región donde aumenta C."},
+    {type:"mcq",scenario:"angled",fig:"Placas con ángulo pequeño",prompt:"Para placas con ángulo pequeño se divide la placa en:",options:["Tiras diferenciales dx","Esferas","Cilindros coaxiales","Resistores"],answer:0,solution:"Se integra dC sobre tiras."},
+    {type:"mcq",scenario:"basic",fig:"Placas paralelas",prompt:"Si aumenta el área A con V fijo, la carga Q:",options:["Aumenta","Disminuye","No cambia","Se vuelve negativa"],answer:0,solution:"C aumenta y Q=CV."},
+    {type:"mcq",scenario:"basic",fig:"Capacitor aislado",prompt:"Si aumenta A con Q fijo, el voltaje V:",options:["Aumenta","Disminuye","No cambia","Se hace infinito"],answer:1,solution:"C aumenta y V=Q/C disminuye."},
+    {type:"mcq",scenario:"dielectricForce",fig:"Fuerza sobre dieléctrico",prompt:"Con batería conectada, si κ, b, d y V no cambian, F=½V²(dC/dx):",options:["Es constante idealmente","Siempre aumenta con x","Siempre disminuye con x","Se hace cero"],answer:0,solution:"dC/dx es constante y V también."},
+    {type:"mcq",scenario:"dielectricForce",fig:"Fuerza sobre dieléctrico",prompt:"Con capacitor desconectado, al entrar más dieléctrico:",options:["C sube y F disminuye","C baja y F aumenta","Q aumenta por batería","V queda fijo"],answer:0,solution:"Q fijo; F=Q²/(2C²)dC/dx disminuye si C aumenta."},
+    {type:"mcq",scenario:"conductor",fig:"Conductor central",prompt:"Si el conductor central aumenta su espesor sin tocar placas, la capacitancia:",options:["Aumenta","Disminuye","No cambia","Se anula"],answer:0,solution:"d efectivo disminuye."},
+    {type:"mcq",scenario:"threeMaterials",fig:"Tres materiales",prompt:"La geometría de tres materiales se resuelve como:",options:["Paralelo + serie","Solo serie","Solo paralelo","Solo esfera"],answer:0,solution:"Una parte está en paralelo y otra tiene capas en serie."},
+    {type:"mcq",scenario:"dielectricThickness",fig:"Dieléctrico parcial en espesor",prompt:"En capas de espesor, ¿qué magnitud comparten las capas?",options:["Carga Q","Voltaje V","Radio R","Ángulo θ"],answer:0,solution:"En serie, la carga es la misma."},
+    {type:"mcq",scenario:"dielectricArea",fig:"Dieléctrico parcial en área",prompt:"En regiones paralelas de área, ¿qué magnitud comparten?",options:["Voltaje V","Carga Q","Energía U","Radio R"],answer:0,solution:"En paralelo, el voltaje es el mismo."},
+    {type:"mcq",scenario:"sphere",fig:"Condensador esférico",prompt:"En el condensador esférico, si R₂ se acerca a R₁, C:",options:["Aumenta","Disminuye","No cambia","Se hace negativa"],answer:0,solution:"C=4πε₀R₁R₂/(R₂−R₁)."},
+    {type:"mcq",scenario:"cylinderStd",fig:"Condensador cilíndrico",prompt:"El campo en un condensador cilíndrico ideal varía como:",options:["1/r","r²","constante","sin θ"],answer:0,solution:"E(r)=Q/(2πε₀Lr)."}
+  ];
+}
+
+function generateQuiz(level){
+  let bank;
+  const extras = makeLevelExtraQuestions(level);
+  if(level === "basico") bank = [...conceptQuestions().slice(0,20)];
+  else if(level === "medio") bank = [...makeNumericalQuestions().slice(0,12), ...conceptQuestions().slice(0,8)];
+  else bank = [...makeAdvancedNumericalQuestions().slice(0,16), ...conceptQuestions().slice(0,4)];
+  while(bank.length < 24){
+    bank.push(...(level==="avanzado" ? makeAdvancedNumericalQuestions() : makeNumericalQuestions()).slice(0,24-bank.length));
+  }
+  return shuffle([...shuffle(bank).slice(0, QUIZ_COUNT - extras.length), ...extras]).slice(0, QUIZ_COUNT);
+}
+
+function makeLevelExtraQuestions(level){
+  const r = (a,b,d=1) => Number((a+Math.random()*(b-a)).toFixed(d));
+  const ri = (a,b) => Math.floor(a + Math.random()*(b-a+1));
+  if(level === "basico"){
+    const A = r(180,420,0), d = r(3,9,1), k = 1;
+    const C = EPS0*(A*1e-6)/(d*1e-3)*k;
+    return [
+      {type:"num", scenario:"dielectricFull", fig:"Dieléctrico con κ=1", unit:"pF", tol:.04,
+        prompt:`Básico: A=${A} mm², d=${d} mm y κ=1. Calcula C en pF. Usa ${EPS0_TXT}.`,
+        value:C/1e-12,
+        solution:`Con κ=1 y ${EPS0_TXT}, C=κε₀A/d=ε₀A/d=${fmtSI(C,"F")}.`},
+      {type:"mcq", scenario:"dielectricFull", fig:"Dieléctrico con κ=1",
+        prompt:"Si κ=1 en un capacitor de placas paralelas, el material se comporta como:",
+        options:["Aire/vacío ideal para la fórmula","Conductor perfecto","Dieléctrico que duplica C","Cortocircuito"],
+        answer:0,
+        solution:"κ=1 deja C igual a C₀=ε₀A/d."}
+    ];
+  }
+  if(level === "medio"){
+    const A1 = r(220,560,0), d1 = r(3,9,1), k1 = ri(2,10);
+    const Cfull = EPS0*(A1*1e-6)/(d1*1e-3)*k1;
+    const A2 = r(220,560,0), d2 = r(3,9,1), k2 = ri(2,10), f = r(.25,.75,2);
+    const C0 = EPS0*(A2*1e-6)/(d2*1e-3);
+    const Cthick = C0/((1-f)+f/k2);
+    return [
+      {type:"num", scenario:"dielectricFull", fig:"Dieléctrico completo", unit:"pF", tol:.04,
+        prompt:`Medio: A=${A1} mm², d=${d1} mm y κ=${k1}. Calcula C en pF. Usa ${EPS0_TXT}.`,
+        value:Cfull/1e-12,
+        solution:`Con ${EPS0_TXT}, C=κε₀A/d=${fmtSI(Cfull,"F")}.`},
+      {type:"num", scenario:"dielectricThickness", fig:"Dieléctrico parcial en espesor", unit:"pF", tol:.05,
+        prompt:`Medio: A=${A2} mm², d=${d2} mm, κ=${k2} y f=${f} en espesor. Calcula C en pF. Usa ${EPS0_TXT}.`,
+        value:Cthick/1e-12,
+        solution:`C=C₀/[(1-f)+f/κ]=${fmtSI(Cthick,"F")}.`}
+    ];
+  }
+  const V = r(8,18,1);
+  const C1 = r(3,10,1), C2 = r(2,8,1), C3 = r(2,8,1), C4 = r(2,8,1), C5 = r(3,10,1), C6 = r(3,10,1);
+  const C234 = C2+C3+C4, C56 = C5+C6;
+  const Ceq = 1/(1/C1 + 1/C234 + 1/C56);
+  const Qt = Ceq*V;
+  const V234 = Qt/C234;
+  const q4 = C4*V234;
+  const R1 = r(.4,1.1,2), R2 = r(1.7,3.5,2), Vs = r(4,14,1);
+  const Csphere = 4*Math.PI*EPS0*(R1*1e-2)*(R2*1e-2)/((R2-R1)*1e-2);
+  const Usphere = .5*Csphere*Vs*Vs;
+  return [
+    {type:"num", scenario:"fig2555", fig:"Circuito serie y paralelo", unit:"μC", tol:.05,
+      prompt:`Avanzado: en el circuito serie y paralelo, V=${V} V; C₁=${C1} μF, C₂=${C2} μF, C₃=${C3} μF, C₄=${C4} μF, C₅=${C5} μF y C₆=${C6} μF. Calcula q₄ en μC.`,
+      value:q4,
+      solution:`C₂₃₄=${fmt(C234)} μF; C₅₆=${fmt(C56)} μF; q₄=${fmt(q4)} μC.`},
+    {type:"num", scenario:"sphere", fig:"Energía en condensador esférico", unit:"pJ", tol:.05,
+      prompt:`Avanzado: condensador esférico con R₁=${R1} cm, R₂=${R2} cm y V=${Vs} V. Calcula U en pJ. Usa ${EPS0_TXT}.`,
+      value:Usphere/1e-12,
+      solution:`Con ${EPS0_TXT}, C=4πε₀R₁R₂/(R₂−R₁); U=½CV²=${fmtSI(Usphere,"J")}.`}
+  ];
+}
+
+function makeNumericalQuestions(){
+  const r = (a,b,d=1) => Number((a+Math.random()*(b-a)).toFixed(d));
+  const q = [];
+  {
+    const A=r(150,500,0), d=r(2,10,1);
+    const C=EPS0*(A*1e-6)/(d*1e-3);
+    q.push({type:"num", scenario:"basic", fig:"Placas paralelas", unit:"pF", tol:.03, prompt:`A=${A} mm² y d=${d} mm. Calcula C en pF. Usa ${EPS0_TXT}.`, value:C/1e-12, solution:`Con ${EPS0_TXT}, C=ε₀A/d=${fmtSI(C,"F")}.`});
+  }
+  {
+    const A=r(180,480,0), d=r(3,9,1), V=r(1,12,1);
+    const C=EPS0*(A*1e-6)/(d*1e-3), Q=C*V;
+    q.push({type:"num", scenario:"basic", fig:"Placas paralelas conectadas", unit:"pC", tol:.03, prompt:`Con batería: A=${A} mm², d=${d} mm, V=${V} V. Calcula Q en pC. Usa ${EPS0_TXT}.`, value:Q/1e-12, solution:`Primero C=ε₀A/d con ${EPS0_TXT}; luego Q=CV=${fmtSI(Q,"C")}.`});
+  }
+  {
+    const A=r(200,520,0), d1=r(2,7,1), d2=r(8,18,1), V1=r(2,10,1);
+    const C1=EPS0*(A*1e-6)/(d1*1e-3), C2=EPS0*(A*1e-6)/(d2*1e-3), Q=C1*V1, V2=Q/C2;
+    q.push({type:"num", scenario:"basic", fig:"Capacitor aislado", unit:"V", tol:.03, prompt:`Se carga a ${V1} V con A=${A} mm² y d=${d1} mm; luego se desconecta. Si d pasa a ${d2} mm, calcula V final. Usa ${EPS0_TXT}.`, value:V2, solution:`Con ${EPS0_TXT}, calcula C₁ y C₂. Como Q fijo, V₂=Q/C₂=${fmt(V2)} V.`});
+  }
+  {
+    const A=r(200,480,0), d=r(2,10,1), k=r(2,8,1);
+    const C=EPS0*(A*1e-6)/(d*1e-3)*k;
+    q.push({type:"num", scenario:"dielectricFull", fig:"Dieléctrico completo", unit:"pF", tol:.03, prompt:`Dieléctrico completo: A=${A} mm², d=${d} mm, κ=${k}. Calcula C en pF. Usa ${EPS0_TXT}.`, value:C/1e-12, solution:`Con ${EPS0_TXT}, C=κC₀=${fmtSI(C,"F")}.`});
+  }
+  {
+    const A=r(180,420,0), d=r(3,8,1), k=r(2,6,1), f=r(.2,.8,2);
+    const C0=EPS0*(A*1e-6)/(d*1e-3), C=C0*((1-f)+k*f);
+    q.push({type:"num", scenario:"dielectricArea", fig:"Dieléctrico parcial en área", unit:"pF", tol:.04, prompt:`Dieléctrico parcial en área: A=${A} mm², d=${d} mm, κ=${k}, f=${f}. Calcula C en pF. Usa ${EPS0_TXT}.`, value:C/1e-12, solution:`Con ${EPS0_TXT}, C=C₀[(1-f)+κf]=${fmtSI(C,"F")}.`});
+  }
+  {
+    const A=r(180,420,0), d=r(3,8,1), k=r(2,6,1), f=r(.2,.8,2);
+    const C0=EPS0*(A*1e-6)/(d*1e-3), C=C0/((1-f)+f/k);
+    q.push({type:"num", scenario:"dielectricThickness", fig:"Dieléctrico parcial en espesor", unit:"pF", tol:.04, prompt:`Dieléctrico parcial en espesor: A=${A} mm², d=${d} mm, κ=${k}, f=${f}. Calcula C en pF. Usa ${EPS0_TXT}.`, value:C/1e-12, solution:`Con ${EPS0_TXT}, C=C₀/[(1-f)+f/κ]=${fmtSI(C,"F")}.`});
+  }
+  {
+    const A=r(200,500,0), d=r(4,10,1), a=r(.8,3,1);
+    const C=EPS0*(A*1e-6)/((d-a)*1e-3);
+    q.push({type:"num", scenario:"conductor", fig:"Conductor rectangular central", unit:"pF", tol:.04, prompt:`Conductor central: A=${A} mm², d=${d} mm, a=${a} mm. Calcula C en pF. Usa ${EPS0_TXT}.`, value:C/1e-12, solution:`Con ${EPS0_TXT}, C=ε₀A/(d-a)=${fmtSI(C,"F")}.`});
+  }
+  {
+    const C1=r(1,6,1), C2=r(1,6,1), C3=r(1,6,1), V=r(4,12,1);
+    const C12=C1*C2/(C1+C2), Ceq=C12+C3, Q=Ceq*V;
+    q.push({type:"num", scenario:"activity", fig:"Red serie-paralelo", unit:"μC", tol:.03, prompt:`C₁=${C1} μF y C₂=${C2} μF en serie; el bloque en paralelo con C₃=${C3} μF. Si V=${V} V, calcula Q total en μC.`, value:Q, solution:`C₁₂=${fmt(C12)} μF; Ceq=${fmt(Ceq)} μF; Q=${fmt(Q)} μC.`});
+  }
+  {
+    const A=r(180,420,0), d1=r(3,8,1), d2=r(9,16,1), V=r(3,9,1);
+    const C1=EPS0*(A*1e-6)/(d1*1e-3), C2=EPS0*(A*1e-6)/(d2*1e-3);
+    const U1=.5*C1*V*V, U2=.5*C2*V*V, pct=(U2-U1)/U1*100;
+    q.push({type:"num", scenario:"basic", fig:"Placas conectadas", unit:"%", tol:.05, prompt:`Con batería: A=${A} mm², V=${V} V. Si d cambia de ${d1} mm a ${d2} mm, ¿qué % cambia U? Usa ${EPS0_TXT}.`, value:pct, solution:`Con V fijo, U cambia como C. Resultado ${fmt(pct)}%.`});
+  }
+  {
+    const k=r(2,6,1), R1=r(.5,1.2,1), R2=r(1.8,3,1), L=r(8,20,0);
+    const C0=2*Math.PI*EPS0*(L*1e-2)/Math.log((R2*1e-2)/(R1*1e-2));
+    const C=C0*(1+k)/2;
+    q.push({type:"num", scenario:"cylinder", fig:"Capacitor cilíndrico con medio dieléctrico", unit:"pF", tol:.05, prompt:`Coaxial: R₁=${R1} cm, R₂=${R2} cm, L=${L} cm, mitad con κ=${k}. Calcula C en pF. Usa ${EPS0_TXT}.`, value:C/1e-12, solution:`Con ${EPS0_TXT}, C=C₀(1+κ)/2=${fmtSI(C,"F")}.`});
+  }
+  return shuffle(q);
+}
+
+function makeAdvancedNumericalQuestions(){
+  const r = (a,b,d=1) => Number((a+Math.random()*(b-a)).toFixed(d));
+  const q = [];
+  for(let i=0;i<10;i++){
+    const A=r(220,520,0), d=r(4,9,1), k=r(3,12,1), f=r(.15,.9,2), V=r(2,10,1);
+    const C0=EPS0*(A*1e-6)/(d*1e-3), C=C0*((1-f)+k*f), Q=C*V, U=.5*C*V*V;
+    const dCdx=EPS0*(k-1)*Math.sqrt(A*1e-6)/(d*1e-3);
+    const F=.5*V*V*dCdx;
+    q.push({type:"num", scenario:"dielectricForce", fig:"Fuerza sobre dieléctrico", unit:i%2===0?"nN":"pJ", tol:.05,
+      prompt:i%2===0 ? `Dieléctrico lateral conectado: A=${A} mm², d=${d} mm, κ=${k}, V=${V} V. Calcula F en nN. Usa ${EPS0_TXT}.` : `Dieléctrico lateral conectado: A=${A} mm², d=${d} mm, κ=${k}, f=${f}, V=${V} V. Calcula U en pJ. Usa ${EPS0_TXT}.`,
+      value:i%2===0 ? F/1e-9 : U/1e-12,
+      solution:i%2===0 ? `Con ${EPS0_TXT}, F=½V²dC/dx=${fmtSI(F,"N")}.` : `Con ${EPS0_TXT}, C=C₀[(1-f)+κf], U=½CV²=${fmtSI(U,"J")}.`});
+  }
+  for(let i=0;i<10;i++){
+    const R1=r(.4,1.2,2), R2=r(1.8,3.5,2), V=r(2,12,1);
+    const C=4*Math.PI*EPS0*(R1*1e-2)*(R2*1e-2)/((R2-R1)*1e-2);
+    q.push({type:"num", scenario:"sphere", fig:"Condensador esférico", unit:i%2===0?"pF":"pC", tol:.05,
+      prompt:i%2===0 ? `Un capacitor esférico tiene R₁=${R1} cm y R₂=${R2} cm. Calcula C en pF. Usa ${EPS0_TXT}.` : `Un capacitor esférico conectado tiene R₁=${R1} cm, R₂=${R2} cm y V=${V} V. Calcula Q en pC. Usa ${EPS0_TXT}.`,
+      value:i%2===0 ? C/1e-12 : C*V/1e-12,
+      solution:`Con ${EPS0_TXT}, C=4πε₀R₁R₂/(R₂−R₁)=${fmtSI(C,"F")}.`});
+  }
+  for(let i=0;i<6;i++){
+    const V = r(6,18,1);
+    const C1 = r(2,10,1), C2 = r(2,8,1), C3 = r(2,8,1), C4 = r(2,8,1), C5 = r(2,10,1), C6 = r(2,10,1);
+    const C234 = C2+C3+C4;
+    const C56 = C5+C6;
+    const Ceq = 1/(1/C1 + 1/C234 + 1/C56);
+    const Qt = Ceq*V;
+    const V234 = Qt/C234;
+    const q4 = C4*V234;
+    q.push({type:"num", scenario:"fig2555", fig:"Circuito serie y paralelo", unit:i%2===0?"μF":"μC", tol:.04,
+      prompt:i%2===0 ? `En la figura del circuito serie y paralelo: C₁=${C1} μF, C₂=${C2} μF, C₃=${C3} μF, C₄=${C4} μF, C₅=${C5} μF, C₆=${C6} μF. Calcula Ceq en μF.` : `En la figura del circuito serie y paralelo con V=${V} V y C₁=${C1}, C₂=${C2}, C₃=${C3}, C₄=${C4}, C₅=${C5}, C₆=${C6} μF. Calcula q₄ en μC.`,
+      value:i%2===0 ? Ceq : q4,
+      solution:i%2===0 ? `C₂₃₄=${fmt(C234)} μF, C₅₆=${fmt(C56)} μF, 1/Ceq=1/C₁+1/C₂₃₄+1/C₅₆.` : `Q=CeqV; V₂₃₄=Q/C₂₃₄; q₄=C₄V₂₃₄=${fmt(q4)} μC.`});
+  }
+  return shuffle(q);
+}
+
+function showQuizItem(){
+  const item = state.quiz.items[state.quiz.idx];
+  state.quiz.selected = null;
+  state.quiz.answered = false;
+  $("submitBtn").disabled = true;
+  $("nextBtn").disabled = true;
+  $("feedback").textContent = "";
+  $("solutionPanel").textContent = "";
+  $("solutionPanel").classList.remove("show");
+  $("testCounter").textContent = `Pregunta ${state.quiz.idx+1}/${state.quiz.items.length}`;
+  $("questionText").textContent = item.prompt;
+  $("questionMeta").innerHTML = `${item.fig ? `<div class="quiz-figure">Figura: ${item.fig}</div>` : ""}${item.type === "num"
+    ? `<div>Respuesta numérica. Unidad esperada: <b>${item.unit}</b>. Tolerancia ±${Math.round(item.tol*100)}%.</div>`
+    : "<div>Opción múltiple.</div>"}`;
+  $("answersBox").innerHTML = "";
+  $("numericAnswer").value = "";
+
+  if(item.scenario && scenarios[item.scenario] && !scenarios[item.scenario].hidden){
+    $("scenarioSelect").value = item.scenario;
+    try { update(); } catch(e) { console.warn("No se pudo actualizar la figura del escenario", e); }
+    $("questionText").textContent = item.prompt;
+    $("questionMeta").innerHTML = `${item.fig ? `<div class="quiz-figure">Figura: ${item.fig}</div>` : ""}${item.type === "num"
+      ? `<div>Respuesta numérica. Unidad esperada: <b>${item.unit}</b>. Tolerancia ±${Math.round(item.tol*100)}%.</div>`
+      : "<div>Opción múltiple.</div>"}`;
+  }
+
+  if(item.type === "mcq"){
+    $("numericBox").style.display = "none";
+    $("answersBox").style.display = "grid";
+    $("answersBox").innerHTML = item.options.map((op,i) =>
+      `<label><input type="radio" name="quizOp" value="${i}"><span>${op}</span></label>`
+    ).join("");
+    document.querySelectorAll("input[name='quizOp']").forEach(inp => {
+      inp.addEventListener("change", () => {
+        state.quiz.selected = Number(inp.value);
+        $("submitBtn").disabled = false;
+        if(state.quiz.examMode) submitQuiz();
+      });
+    });
+  } else {
+    $("answersBox").style.display = "none";
+    $("numericBox").style.display = "grid";
+    $("numericAnswer").oninput = () => {
+      $("submitBtn").disabled = !$("numericAnswer").value.trim();
+    };
+  }
+}
+
+function submitQuiz(){
+  const item = state.quiz.items[state.quiz.idx];
+  if(state.quiz.answered) return;
+  let ok = false;
+  let given = "";
+
+  if(item.type === "mcq"){
+    if(state.quiz.selected === null) return;
+    ok = state.quiz.selected === item.answer;
+    given = item.options[state.quiz.selected];
+  } else {
+    const val = parseFloat($("numericAnswer").value.replace(",","."));
+    if(!Number.isFinite(val)) return;
+    const err = Math.abs(val-item.value)/(Math.abs(item.value)||1);
+    ok = err <= item.tol;
+    given = `${val} ${item.unit}`;
+  }
+
+  state.quiz.answered = true;
+  if(ok) state.quiz.score++;
+
+  state.quiz.answers.push({
+    n: state.quiz.idx + 1,
+    prompt: item.prompt,
+    fig: item.fig || "",
+    type: item.type,
+    given,
+    expected: item.type === "mcq" ? item.options[item.answer] : `${fmt(item.value)} ${item.unit}`,
+    ok,
+    feedback: item.solution
+  });
+
+  // Examen real: no mostrar correcto/incorrecto ni clave durante la prueba.
+  if(state.quiz.examMode){
+    $("feedback").textContent = "Respuesta registrada. Continúa con la siguiente pregunta.";
+  } else {
+    $("feedback").textContent = ok
+      ? "✅ Correcto."
+      : `❌ Incorrecto. ${item.type==="num" ? `Valor esperado ≈ ${fmt(item.value)} ${item.unit}. ` : ""}${item.solution}`;
+  }
+
+  $("solutionPanel").classList.remove("show");
+  $("solutionPanel").textContent = "";
+  $("submitBtn").disabled = true;
+  $("nextBtn").disabled = false;
+}
+
+function nextQuiz(){
+  if(state.quiz.idx < state.quiz.items.length-1){
+    state.quiz.idx++;
+    showQuizItem();
+  } else {
+    finishQuiz();
+  }
+}
+
+function finishQuiz(){
+  if(state.quiz.finished) return;
+  clearInterval(state.quiz.timer);
+  state.quiz.finished = true;
+  state.quiz.started = false;
+  setPanelExamLock(false);
+  $("nextBtn").disabled = true;
+  $("submitBtn").disabled = true;
+  enforceSolutionMode();
+  const pct = state.quiz.items.length ? Math.round(100*state.quiz.score/state.quiz.items.length) : 0;
+  const rows = (state.quiz.answers || []).map(a =>
+    `<tr><td>${a.n}</td><td>${a.fig}</td><td>${a.ok ? '<span style="color:#15803d;font-weight:900">✓ Correcta</span>' : '<span style="color:#b91c1c;font-weight:900">Incorrecta</span>'}</td><td>${a.given}</td><td>${a.expected}</td><td>${a.feedback}</td></tr>`
+  ).join("");
+  $("resultBox").classList.add("show");
+  $("resultBox").innerHTML = `
+    <h3>Hoja de resultados — Capacitancia</h3>
+    <p><b>Nombre:</b> ${state.quiz.name || $("studentName").value || "sin nombre"}<br>
+    <b>Correo:</b> ${state.quiz.email || $("studentEmail").value || "sin correo"}<br>
+    <b>Nivel:</b> ${state.quiz.level || $("levelSelect").value}<br>
+    <b>Clave impresa:</b> ${state.quiz.key || "—"}<br>
+    <b>Intento:</b> ${String(state.quiz.attempt || 0).padStart(2,"0")}<br>
+    <b>Nota:</b> ${state.quiz.score}/${state.quiz.items.length} = ${pct}%</p>
+    <table class="exam-report-table">
+      <thead><tr><th>#</th><th>Figura</th><th>Estado</th><th>Respuesta estudiante</th><th>Clave</th><th>Retroalimentación</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  $("feedback").textContent = `Examen terminado. Nota: ${state.quiz.score}/${state.quiz.items.length}. Ya puedes imprimir resultados.`;
+}
+
+function nextAttempt(level,email){
+  const safe = (email || "anon").toLowerCase().replace(/[^a-z0-9]/g,"_");
+  const key = `capacitancia_attempt_${safe}_${level}`;
+  const n = Number(localStorage.getItem(key) || "0") + 1;
+  localStorage.setItem(key, String(n));
+  return n;
+}
+
+function makeExamKey(level,attempt){
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let rand = "";
+  for(let i=0;i<4;i++) rand += chars[Math.floor(Math.random()*chars.length)];
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2,"0");
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const yy = String(d.getFullYear()).slice(-2);
+  const levelCode = level==="basico" ? "B" : (level==="medio" ? "M" : "A");
+  return `${rand}CAP${dd}${mm}${yy}E${levelCode}-${String(attempt).padStart(2,"0")}`;
+}
+
+function printResults(){
+  if(state.quiz.started && !state.quiz.finished){
+    alert("El examen aún está en curso. Termínalo antes de imprimir resultados.");
+    return;
+  }
+  if(!$("resultBox").classList.contains("show")){
+    alert("Primero termina un examen para imprimir resultados.");
+    return;
+  }
+  window.print();
+}
+
+function printKey(){
+  if(!state.quiz.key){
+    alert("Primero inicia el examen para generar la clave impresa.");
+    return;
+  }
+  const info = `Clave impresa: ${state.quiz.key}\nNombre: ${state.quiz.name || $("studentName").value}\nCorreo: ${state.quiz.email || $("studentEmail").value}\nNivel: ${state.quiz.level || $("levelSelect").value}\nIntento: ${String(state.quiz.attempt || 0).padStart(2,"0")}`;
+  alert(info);
+}
+
+// Helpers
+function shuffle(arr){ return [...arr].sort(() => Math.random()-0.5); }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function css(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+function line(x1,y1,x2,y2){ ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function arrow(x1,y1,x2,y2){
+  line(x1,y1,x2,y2);
+  const a = Math.atan2(y2-y1,x2-x1), s=9;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-s*Math.cos(a-Math.PI/6), y2-s*Math.sin(a-Math.PI/6));
+  ctx.lineTo(x2-s*Math.cos(a+Math.PI/6), y2-s*Math.sin(a+Math.PI/6));
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawPanelButtons(x,y,bw,bh,dragKey,closeKey,resizeKey){
+  const s = state.ui.scale || 1;
+  // Close button
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,.94)";
+  ctx.strokeStyle = "#222";
+  ctx.lineWidth = 1.1;
+  roundRect(x+bw-24*s, y+6*s, 18*s, 18*s, 5*s, "rgba(255,255,255,.94)", "#222", 1);
+  ctx.fillStyle = "#a11";
+  ctx.font = `bold ${Math.round(13*s)}px sans-serif`;
+  ctx.fillText("×", x+bw-19*s, y+20*s);
+  // Resize handle
+  roundRect(x+bw-24*s, y+bh-24*s, 18*s, 18*s, 5*s, "rgba(255,255,255,.94)", "#222", 1);
+  ctx.fillStyle = "#555";
+  ctx.font = `bold ${Math.round(12*s)}px sans-serif`;
+  ctx.fillText("↘", x+bw-22*s, y+bh-10*s);
+  ctx.restore();
+  state.hotspots[dragKey] = {x, y, w:bw, h:bh};
+  state.hotspots[closeKey] = {x:x+bw-26*s, y:y+4*s, w:22*s, h:22*s};
+  state.hotspots[resizeKey] = {x:x+bw-28*s, y:y+bh-28*s, w:26*s, h:26*s};
+}
+
+function roundRect(x,y,w,h,r,fill,stroke,lw=1){
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=lw; ctx.stroke(); }
+  ctx.restore();
+}
+function ellipse(cx,cy,rx,ry,stroke=true,fill=false){
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+  if(fill) ctx.fill();
+  if(stroke) ctx.stroke();
+}
+function fmt(x,n=3){
+  if(!Number.isFinite(x)) return "—";
+  if(Math.abs(x)>=1000 || (Math.abs(x)>0 && Math.abs(x)<0.01)) return x.toExponential(2);
+  return Number(x).toFixed(n).replace(/\.?0+$/,"");
+}
+function fmtSI(v,unit){
+  if(!Number.isFinite(v)) return "—";
+  const a=Math.abs(v);
+  const prefixes=[["G",1e9],["M",1e6],["k",1e3],["",1],["m",1e-3],["μ",1e-6],["n",1e-9],["p",1e-12],["f",1e-15]];
+  let pick=prefixes[prefixes.length-1];
+  for(const p of prefixes){ if(a>=p[1]){ pick=p; break; } }
+  return `${fmt(v/pick[1])} ${pick[0]}${unit}`;
+}
+
+window.addEventListener("resize", update);
+init();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+V30
+- Corregida la figura del escenario 13 para que coincida con la red serie-paralelo de referencia.
+- Eliminados los buses verticales que atravesaban C2, C4 y las ramas inferiores, porque visualmente cortocircuitaban nodos separados por capacitores.
+- Hecha responsiva la geometria de la figura: en pantallas angostas C1, C2, C3, C4, C5 y C6 ya no se amontonan ni se salen del canvas.
+- Reubicados los paneles flotantes para que no tapen el bloque superior del circuito.
+- Redibujada la fuente de voltaje como rama conectada al cable superior e inferior.
+- Reubicadas las etiquetas de carga de C4 y del resumen inferior para que q4 sea visible.
+- Reducida la flecha de flujo de carga del escenario 13 para que no choque con letras ni ramas del circuito.
+- Eliminado el q4 duplicado del resumen inferior; queda solo junto a C4.
+- Compactadas las barras horizontales de la bateria, manteniendo conexion al cable superior e inferior.
+- Ocultados parametros no relacionados en Serie-paralelo: area, d, radios, L, angulos y materiales multiples.
+- Separada la seccion C1...C6 de los parametros avanzados para que siga visible en Serie-paralelo.
+- Agregada opcion "Dielectrico parcial en C1": al activarla aparecen f y k, y C1 se reemplaza por C1ef=C1[(1-f)+kf].
+- Autotest ajustado a 10 preguntas por nivel.
+- Basico agrega una pregunta numerica con k=1 y una conceptual nueva.
+- Medio y avanzado agregan dos preguntas numericas nuevas por nivel, con k variable entre 2 y 10 cuando aplica.
+- En modo examen con "respuesta fija" marcado, la solucion queda OFF, bloqueada y sin claves numericas visibles durante el intento.
+- Interfaz actualizada a "Capitulo Capacitancia" y los enunciados ya no usan referencias numeradas de libro.
+- Los problemas numericos que usan epsilon cero ahora indican el valor: epsilon0=8.854e-12 F/m.
+- En modo examen, Formula y Desarrollo quedan OFF y bloqueados hasta terminar el intento.
+- El reporte final marca respuestas correctas con visto verde.
+- Enunciados de capacitor esferico conectados redactados como "Un capacitor esferico conectado...".
+- Revisada la pregunta avanzada del circuito serie-paralelo: ya no usa f ni k sin dimensiones geometricas; ahora entrega C1...C6 directamente.
+- Conservada la simulacion correcta: C1 en serie con el bloque superior C2||C3||C4 y luego con el bloque inferior C5||C6.
+- Ajustadas las etiquetas del escenario para remarcar que las placas de cada capacitor separan los nodos.
+- Verificado en navegador local: escenario 13 carga sin errores de consola y con valores por defecto Ceq=3 uF, Qtotal=9 uC, V1+V234+V56=3 V.
