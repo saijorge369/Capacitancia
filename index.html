@@ -525,7 +525,7 @@ body.exam-active .development-panel{
     <section class="group" id="advancedControls">
       <div class="group-title">Parámetros avanzados</div>
       <div class="grid-2">
-        <label>θ grados <input id="thetaInput" type="number" min="0" max="25" step="0.5" value="5"></label>
+        <label>θ grados <input id="thetaInput" type="number" min="0" max="5" step="0.1" value="3"></label>
         <label>a conductor (mm) <input id="aInput" type="number" min="0" max="19" step="0.1" value="2"></label>
       </div>
       <div class="group">
@@ -784,7 +784,7 @@ const scenarios = {
   angled: {
     label: "9. Placas con ángulo pequeño",
     prompt: "Una placa inclinada: se resuelve integrando tiras diferenciales.",
-    lesson: "La separación cambia con x. Para θ pequeño se usa una aproximación lineal.",
+    lesson: "La separación cambia con x. Para θ pequeño se usa una aproximación lineal; se limita a 0–5°.",
     draw: "angled",
     formulas: [["Elemento","dC = ε₀a dx/(d+xθ)"],["Aproximación","C ≈ ε₀a²/d(1-aθ/2d)"],["Ángulo","θ en radianes"]]
   },
@@ -2421,7 +2421,7 @@ function drawField(g,mode,input){
       arrow(x,g.top+20,x,y1);
       arrow(x,y2,x,g.bot);
     } else if(mode === "angled"){
-      const rise = (input.theta/25)*92;
+      const rise = (input.theta/5)*92;
       const yTop = g.top - rise*((x-g.left)/g.plateW) + 22;
       arrow(x,yTop,x,g.bot);
     } else {
@@ -2433,7 +2433,7 @@ function drawField(g,mode,input){
 function drawCharges(g,mode,input){
   ctx.font = "bold 20px sans-serif";
   if(mode === "angled"){
-    const rise = (input.theta/25)*92;
+    const rise = (input.theta/5)*92;
     for(let i=0;i<8;i++){
       const x = g.left+18+i*(g.plateW-36)/7;
       const y = g.top - (rise*(x-g.left)/g.plateW);
@@ -2593,7 +2593,7 @@ function drawAngled(input,result,g,w,h){
   drawStateBox(input,result,w,h);
 
   drawPlate(g.left,g.bot,g.plateW,"bottom");
-  const rise = (input.theta/25)*92;
+  const rise = (input.theta/5)*92;
   ctx.fillStyle = "#e9edf1";
   ctx.strokeStyle = "#111";
   ctx.lineWidth = 2;
@@ -3218,7 +3218,7 @@ function setupDrag(){
       $("aInput").value = Number(a_mm).toFixed(1);
     }
     if(state.drag.type === "theta"){
-      const theta = clamp((g.right - m.x + 40)/6, 0, 25);
+      const theta = clamp((g.right - m.x + 40)/6, 0, 5);
       sync("thetaInput","thetaInput",theta,1);
     }
 
