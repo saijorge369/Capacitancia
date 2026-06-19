@@ -1,7 +1,7 @@
-version: '3'
-
 services:
   capacitancia:
     build: .
+    container_name: capacitancia
+    restart: unless-stopped
     ports:
       - "80:80"
