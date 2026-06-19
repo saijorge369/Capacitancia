@@ -216,6 +216,16 @@ h1{font-size:clamp(1.15rem,2.5vw,1.65rem);margin:0}
 .hint{color:var(--muted);font-size:.9rem;line-height:1.38}
 .author-line{margin-top:.28rem;color:var(--muted);font-size:.88rem;font-weight:700}
 .author-line strong{color:var(--brand-2)}
+.site-footer{
+  border-top:1px solid var(--line);
+  background:var(--paper);
+  color:var(--muted);
+  padding:.75rem clamp(1rem,2vw,1.6rem);
+  text-align:center;
+  font-size:.86rem;
+  font-weight:750;
+}
+.site-footer strong{color:var(--brand-2)}
 .header-actions,.small-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
 .pill{
   border:1px solid var(--line);
@@ -678,6 +688,10 @@ body.exam-active .development-panel{
     </section>
   </aside>
 </main>
+<footer class="site-footer">
+  <strong>© 2026 Prof. Wong · ESPOL · OM SAI RAM.</strong>
+  Uso educativo autorizado. Prohibida la redistribución, venta o modificación pública sin permiso del autor.
+</footer>
 </div>
 
 <script>
@@ -3950,5 +3964,10 @@ window.addEventListener("resize", update);
 init();
 </script>
 
+<script
+  defer
+  src="https://static.cloudflareinsights.com/beacon.min.js"
+  data-cf-beacon='{"token":"9b66ff765c2f4602a652aec30cf40248"}'
+></script>
 </body>
 </html>
