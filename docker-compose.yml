@@ -3,5 +3,13 @@ version: '3'
 services:
   capacitancia:
     build: .
-    ports:
-      - "80:80"
+    container_name: capacitancia
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.capacitancia.rule=Host(`sci.omsairam.cloud`) && PathPrefix(`/capacitancia`)
+      - traefik.http.routers.capacitancia.entrypoints=web,websecure
+      - traefik.http.routers.capacitancia.tls.certresolver=letsencrypt
+      - traefik.http.services.capacitancia.loadbalancer.server.port=80
+      - traefik.http.middlewares.capacitancia-stripprefix.stripprefix.prefixes=/capacitancia
+      - traefik.http.routers.capacitancia.middlewares=capacitancia-stripprefix@docker
